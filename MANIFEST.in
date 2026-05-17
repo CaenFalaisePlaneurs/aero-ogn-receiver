@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include SECURITY.md
+include THIRD_PARTY.md
+include config.example.yaml
+recursive-include scripts *.sh
+recursive-include aero_ogn_receiver/data *.yaml
+recursive-include aero_ogn_receiver/templates *

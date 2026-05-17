@@ -1,0 +1,23 @@
+ogn_binaries:
+  "0.3.2":
+    arm:
+      url: "http://download.glidernet.org/arm/rtlsdr-ogn-bin-ARM-0.3.2.tgz"
+      sha256: "0fa9865295a3d60334e5a02aeacd4b02b0d94dd95547b02333e69884d0f271fc"
+      md5: "33a1f70c74538660274fa653e9ba6503"
+      size_bytes: 423893
+      upstream_last_modified: "2024-03-19T22:24:55Z"
+      archive_root: "rtlsdr-ogn-0.3.2"
+    rpi_gpu:
+      url: "http://download.glidernet.org/rpi-gpu/rtlsdr-ogn-bin-RPI-GPU-0.3.2.tgz"
+      sha256: "003ea038ab04c2f8e9f1146b6fbb47c2510a05d55af8e3eb857a4ddc6da55253"
+      md5: "f40bd92414eab8b096943022fd4b843f"
+      size_bytes: 395567
+      upstream_last_modified: "2024-03-19T21:47:00Z"
+      archive_root: "rtlsdr-ogn-0.3.2"
+    arm64:
+      url: "http://download.glidernet.org/arm64/rtlsdr-ogn-bin-arm64-0.3.2.tgz"
+      sha256: "400a53849c440cfdce533297637200385077c7c576ccb98ab8d0eed8d9c54319"
+      md5: "ac659a05f45a27b59667758aac26b073"
+      size_bytes: 357448
+      upstream_last_modified: "2024-03-19T22:00:21Z"
+      archive_root: "rtlsdr-ogn-0.3.2"

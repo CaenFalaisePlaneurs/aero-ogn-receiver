@@ -1,0 +1,25 @@
+RF:
+{
+  FreqCorr = {{ radio.ppm_correction }};
+  SampleRate = 2.0;
+  BiasTee = {{ radio.bias_tee }};
+{{ radio.gsm_section }}
+  OGN:
+  {
+    CenterFreq = 868.8;
+    Gain = {{ radio.ogn_gain_db }};
+  };
+};
+
+Position:
+{
+  Latitude = {{ receiver.latitude }};
+  Longitude = {{ receiver.longitude }};
+  Altitude = {{ receiver.altitude_m }};
+};
+
+APRS:
+{
+  Call = {{ receiver.name }};
+  Server = {{ ogn.aprs_server }};
+};

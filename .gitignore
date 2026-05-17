@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Official OGN runtime binaries and archives must never be committed.
+rtlsdr-ogn-bin-*.tgz
+rtlsdr-ogn-*/
+ogn-rf
+ogn-decode
+gsm_scan
+
+.DS_Store

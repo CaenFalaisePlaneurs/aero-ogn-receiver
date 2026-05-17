@@ -1,0 +1,20 @@
+[Unit]
+Description=Aero OGN RF receiver
+After=network-online.target time-sync.target
+Wants=network-online.target
+PartOf=aero-ogn-receiver.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/aero-ogn-receiver/ogn/current
+ExecStart=/usr/bin/procServ -f -q -L - --restrict -p /run/aero-ogn-rf.procserv.pid -k ^X --killsig 15 -x ^C -i ^D -c /opt/aero-ogn-receiver/ogn/current 127.0.0.1:50000 ./ogn-rf /etc/aero-ogn-receiver/rtlsdr-ogn.conf
+Restart=always
+RestartSec=5
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/lib/aero-ogn-receiver /var/log/aero-ogn-receiver
+NoNewPrivileges=true
+
+[Install]
+WantedBy=aero-ogn-receiver.target

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aero-ogn-receiver"
+version = "0.1.0"
+description = "Installable OGN/FLARM receiver manager for Raspberry Pi"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Caen Falaise Planeurs" }
+]
+keywords = ["ogn", "flarm", "raspberry-pi", "rtlsdr", "receiver"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Systems Administration",
+]
+dependencies = []
+
+[project.scripts]
+aero-ogn = "aero_ogn_receiver.cli.main:main"
+aero-ogn-setup = "aero_ogn_receiver.setup.setup:main"
+aero-ogn-uninstall = "aero_ogn_receiver.setup.uninstall:main"
+
+[tool.setuptools.packages.find]
+include = ["aero_ogn_receiver*"]
+
+[tool.setuptools.package-data]
+aero_ogn_receiver = ["data/*.yaml", "templates/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

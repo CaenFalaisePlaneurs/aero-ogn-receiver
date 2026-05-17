@@ -1,0 +1,25 @@
+receiver:
+  name: "LFAS"
+  latitude: 48.92746
+  longitude: -0.14842
+  altitude_m: 157
+
+radio:
+  ppm_correction: 0
+  # Optional GSM-based frequency calibration. Leave false for TCXO SDR sticks unless
+  # you have run gsm_scan and want ogn-rf to use the GSM calibration block.
+  gsm_calibration: false
+  gsm_center_freq_mhz: 950
+  gsm_gain_db: 25
+  ogn_gain_db: 50
+  # Sends DC power through the SDR antenna connector for compatible active antennas/LNAs only.
+  # Leave false for passive antennas; enabling it with incompatible hardware can damage equipment.
+  bias_tee: false
+
+ogn:
+  aprs_server: "aprs.glidernet.org:14580"
+  version: "0.3.2"
+  binary_arch: "auto"
+
+service:
+  start_on_boot: true
