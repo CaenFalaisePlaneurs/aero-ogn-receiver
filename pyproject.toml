@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aero-pi-ogn-receiver"
-version = "0.1.0"
+version = "1.0.0"
 description = "Installable OGN/FLARM receiver manager for Raspberry Pi"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -15,7 +15,7 @@ authors = [
 ]
 keywords = ["ogn", "flarm", "raspberry-pi", "rtlsdr", "receiver"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Intended Audience :: System Administrators",
   "Programming Language :: Python :: 3",
