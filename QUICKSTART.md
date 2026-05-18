@@ -186,7 +186,50 @@ If journald is unavailable or the service is missing, expect an error from
 aero-ogn service status
 ```
 
-## 7. Leave The Virtual Environment
+## 7. Recognize Antenna Or RF-Path Issues
+
+A faulty antenna, coax, connector, adapter, LNA, or wrong bias tee setting often
+does not crash the receiver. The software can look healthy while no useful RF is
+received.
+
+Typical pattern:
+
+```text
+aero-ogn status --live      -> Overall: OK
+aero-ogn aircraft --watch 5 -> No aircraft currently tracked by the local decoder.
+aero-ogn logs traffic       -> APRS status keeps showing 0/0Acfts[1h]
+```
+
+Example traffic line:
+
+```text
+APRS <- LFAS>OGNSDR:>095907h v0.3.2.ARM CPU:1.1 RAM:197.7/950.0MB NTP:0.0ms/-2.1ppm +70.9C EGM96:+47m 0/0Acfts[1h] RF:+0+0.0ppm/+3.31dB
+```
+
+Check RF noise:
+
+```bash
+aero-ogn logs rf --follow
+```
+
+Example RF output:
+
+```text
+BkgNoise = 4.1dB, Gain = 49.6dB [28]
+```
+
+Suspicious signs:
+
+```text
+BkgNoise very low or flat + 0 aircraft       disconnected antenna, bad coax, bad adapter
+BkgNoise very high or unstable + few aircraft overload, bad LNA, interference, wrong bias tee
+Only close aircraft appear                   poor placement, lossy coax, damaged antenna
+```
+
+The best practical check is to watch `aero-ogn aircraft --watch 5` while a known
+aircraft with a working FLARM is nearby and transmitting.
+
+## 8. Leave The Virtual Environment
 
 ```bash
 deactivate
