@@ -26,6 +26,7 @@ from aero_ogn_receiver.core.checksums import ChecksumMismatch, verify_file_hash
 from aero_ogn_receiver.core.config_model import load_config
 from aero_ogn_receiver.core.manifest import BinaryEntry, load_manifest
 from aero_ogn_receiver.core.render import render_ogn_config
+from aero_ogn_receiver.setup import venv_readme
 
 
 BASE_SYSTEM_PACKAGES = ("rtl-sdr", "ca-certificates", "procserv")
@@ -95,6 +96,7 @@ class SetupOptions:
     no_daemon_reload: bool
     version: str
     arch: str
+    venv_dir: Path | None
     paths: SetupPaths
     root: Path | None
 
@@ -132,6 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Apply under an alternate root for tests; skips apt and systemctl by default",
     )
+    parser.add_argument("--venv-dir", type=Path, help=argparse.SUPPRESS)
     return parser
 
 
@@ -145,6 +148,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         no_daemon_reload=args.no_daemon_reload or args.root is not None,
         version=args.version,
         arch=resolve_binary_arch(args.arch),
+        venv_dir=args.venv_dir if args.venv_dir else venv_readme.detect_venv_dir(),
         paths=SetupPaths.under_root(args.root) if args.root else SetupPaths.system(),
         root=args.root,
     )
@@ -182,6 +186,7 @@ def run_setup(options: SetupOptions) -> None:
     _apply_ogn_runtime_permissions(options)
     _install_systemd_units(options)
     _reload_systemd(options)
+    _write_venv_readme(options)
     _print_next_steps(options)
 
 
@@ -443,6 +448,17 @@ def _reload_systemd(options: SetupOptions) -> None:
     subprocess.run(["systemctl", "daemon-reload"], check=True)
 
 
+def _write_venv_readme(options: SetupOptions) -> None:
+    if options.venv_dir is None:
+        _say(options, "Skip virtual environment README because no venv was detected")
+        return
+    readme_path = options.venv_dir / venv_readme.README_FILENAME
+    _say(options, f"Write virtual environment command README: {readme_path}")
+    if options.dry_run:
+        return
+    venv_readme.write_venv_readme(options.venv_dir)
+
+
 def _print_next_steps(options: SetupOptions) -> None:
     if options.dry_run:
         return
@@ -461,6 +477,8 @@ def _print_next_steps(options: SetupOptions) -> None:
     )
     print("4. Start services when ready: sudo systemctl enable --now aero-ogn-receiver.target")
     print(f"5. Check status: {aero_ogn_command} status --live")
+    if options.venv_dir is not None:
+        print(f"6. Command sheet: {options.venv_dir / venv_readme.README_FILENAME}")
 
 
 def _safe_extract_tar(archive_path: Path, destination: Path) -> None:

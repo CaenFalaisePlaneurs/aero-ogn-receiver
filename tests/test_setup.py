@@ -17,6 +17,8 @@ class SetupIntegrationTests(unittest.TestCase):
                     [
                         "--root",
                         str(root),
+                        "--venv-dir",
+                        str(root / "home/pi/aero-ogn-receiver-venv"),
                         "--skip-download",
                         "--no-daemon-reload",
                     ]
@@ -36,6 +38,15 @@ class SetupIntegrationTests(unittest.TestCase):
             self.assertIn("/usr/bin/procServ", decode_unit.read_text(encoding="utf-8"))
             self.assertIn("127.0.0.1:50001", decode_unit.read_text(encoding="utf-8"))
             self.assertTrue((root / "etc/systemd/system/aero-ogn-receiver.target").exists())
+            readme = root / "home/pi/aero-ogn-receiver-venv/README-aero-ogn-receiver.md"
+            self.assertTrue(readme.exists())
+            readme_text = readme.read_text(encoding="utf-8")
+            self.assertIn("status --live", readme_text)
+            self.assertIn("aero-ogn-uninstall --complete", readme_text)
+            self.assertIn(
+                "https://github.com/CaenFalaisePlaneurs/aero-ogn-receiver#readme",
+                readme_text,
+            )
 
     def test_uninstall_removes_units_and_preserves_config_by_default(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -111,6 +111,11 @@ sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/aero-ogn config render --output 
 sudo systemctl enable --now aero-ogn-receiver.target
 ```
 
+Setup writes a short command sheet into the virtual environment:
+`~/aero-ogn-receiver-venv/README-aero-ogn-receiver.md`. It contains the common
+status, service, config, upgrade, and uninstall commands, and points back to
+this README for troubleshooting and less common tasks.
+
 The package also exposes console entry points:
 
 ```bash

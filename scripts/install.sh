@@ -25,10 +25,15 @@ else
   "$VENV_DIR/bin/pip" install "git+$REPO_URL"
 fi
 
+"$VENV_DIR/bin/python" -m aero_ogn_receiver.setup.venv_readme "$VENV_DIR" >/dev/null
+
 cat <<EOF
 
 aero-ogn-receiver is installed in:
   $VENV_DIR
+
+Command sheet:
+  $VENV_DIR/README-aero-ogn-receiver.md
 
 Next steps:
   sudo $VENV_DIR/bin/python -m aero_ogn_receiver.setup.setup
