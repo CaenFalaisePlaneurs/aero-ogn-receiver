@@ -4,8 +4,8 @@
 
 Installable OGN/FLARM receiver manager for Raspberry Pi.
 
-Canonical project documentation lives in [`/docs`](docs/index.html) for GitHub
-Pages publishing.
+Project documentation is published at
+[caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver](https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/).
 
 Start here:
 
