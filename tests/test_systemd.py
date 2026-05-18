@@ -9,6 +9,7 @@ class SystemdCommandTests(unittest.TestCase):
 
         self.assertEqual(command[:4], ["journalctl", "-u", "aero-ogn-rf.service", "-u"])
         self.assertIn("aero-ogn-decode.service", command)
+        self.assertIn("--no-pager", command)
         self.assertIn("-f", command)
         self.assertIn("50", command)
 

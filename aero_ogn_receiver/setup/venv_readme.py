@@ -96,6 +96,7 @@ read the full project documentation:
 {_q(aero_ogn)} status --live
 {_q(aero_ogn)} service status
 {_q(aero_ogn)} logs --lines 100
+{_q(aero_ogn)} logs traffic --follow
 ```
 
 ## Start, Stop, Restart

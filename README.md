@@ -165,9 +165,15 @@ aero-ogn status --live
 aero-ogn status --watch 5
 aero-ogn logs
 aero-ogn logs --follow
+aero-ogn logs traffic --follow
 aero-ogn service status
 aero-ogn healthcheck
 ```
+
+`aero-ogn logs traffic --follow` is the focused live view for APRS and decoded
+aircraft activity. It filters the decoder journal down to useful APRS send/login
+lines and polls the upstream decoder aircraft list endpoint when aircraft are
+currently decoded.
 
 The main field operations path is:
 

@@ -30,6 +30,7 @@ def journalctl_command(
     command = ["journalctl"]
     for unit in units_for_component(component):
         command.extend(["-u", unit])
+    command.append("--no-pager")
     command.extend(["-n", str(lines)])
     if follow:
         command.append("-f")
@@ -72,4 +73,3 @@ def run_command(command: list[str]) -> CommandResult:
         stdout=completed.stdout,
         stderr=completed.stderr,
     )
-

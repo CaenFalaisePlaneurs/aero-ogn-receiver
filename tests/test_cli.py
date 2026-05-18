@@ -28,6 +28,7 @@ class CliTests(unittest.TestCase):
             ["binaries", "list", "--help"],
             ["status", "--help"],
             ["logs", "--help"],
+            ["logs", "traffic", "--help"],
             ["service", "status", "--help"],
             ["healthcheck", "--help"],
         ]
