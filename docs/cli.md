@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: page
 title: CLI Reference
-permalink: /cli/
 ---
 
 # CLI Reference

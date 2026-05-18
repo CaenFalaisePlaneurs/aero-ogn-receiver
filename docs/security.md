@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: page
 title: Security Policy
-permalink: /security/
 ---
 
 # Security Policy

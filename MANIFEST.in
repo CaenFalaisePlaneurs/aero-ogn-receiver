@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 include config.example.yaml
-recursive-include docs *.md *.yml
+recursive-include docs *.md *.yml *.html *.css *.png
 recursive-include scripts *.sh
 recursive-include aero_pi_ogn_receiver/data *.yaml
 recursive-include aero_pi_ogn_receiver/templates *

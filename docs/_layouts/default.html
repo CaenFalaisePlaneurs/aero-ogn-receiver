@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+    <link rel="stylesheet" href="{{ 'assets/css/main.css' | relative_url }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ '/' | relative_url }}">
+                <img src="{{ 'aero-pi-ogn-receiver_logo.png' | relative_url }}" alt="aero-pi-ogn-receiver logo">
+            </a>
+            <h1>aero-pi-ogn-receiver documentation</h1>
+        </div>
+
+        <div class="content">
+            {{ content }}
+        </div>
+
+        <div class="footer">
+            <p>
+                <a href="{{ '/' | relative_url }}" class="nav-link">Home</a>
+                <a href="https://caenfalaiseplaneurs.github.io/" class="nav-link">All Projects</a>
+                <a href="https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver" class="nav-link">View on GitHub</a>
+                <a href="https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/blob/main/README.md" class="nav-link">Main README</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: page
 title: Operations
-permalink: /operation/
 ---
 
 # Operations

@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: page
 title: Quick Start
-permalink: /quickstart/
 ---
 
 # aero-pi-ogn-receiver Quick Start
@@ -258,5 +257,5 @@ bash: deactivate: command not found
 That means the shell is probably not inside the venv anymore. It is harmless.
 
 For install, upgrade, uninstall, troubleshooting, and hardware notes, read the
-[installation](installation.md), [operation](operation.md), and
-[troubleshooting](troubleshooting.md) docs.
+[installation](installation.html), [operation](operation.html), and
+[troubleshooting](troubleshooting.html) docs.

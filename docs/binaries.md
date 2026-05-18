@@ -1,7 +1,6 @@
 ---
-layout: default
+layout: page
 title: OGN Binaries
-permalink: /binaries/
 ---
 
 # OGN Binaries And Third-Party Runtime Components
@@ -53,5 +52,5 @@ Project source code, installer code, templates, and documentation are licensed
 under GPL-3.0-or-later.
 
 Official OGN binaries are separate third-party runtime components and are not
-relicensed by this project. See the [security policy](security.md) for the
+relicensed by this project. See the [security policy](security.html) for the
 binary trust boundary and download/update rules.

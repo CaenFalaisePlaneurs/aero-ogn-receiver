@@ -4,7 +4,7 @@
 
 Installable OGN/FLARM receiver manager for Raspberry Pi.
 
-Canonical project documentation lives in [`/docs`](docs/index.md) for GitHub
+Canonical project documentation lives in [`/docs`](docs/index.html) for GitHub
 Pages publishing.
 
 Start here:
