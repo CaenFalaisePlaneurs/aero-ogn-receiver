@@ -12,6 +12,7 @@ from pathlib import Path
 README_FILENAME = "README-aero-ogn-receiver.md"
 DEFAULT_REPO_URL = "https://github.com/CaenFalaisePlaneurs/aero-ogn-receiver.git"
 DOCS_URL = "https://github.com/CaenFalaisePlaneurs/aero-ogn-receiver#readme"
+QUICKSTART_URL = "https://github.com/CaenFalaisePlaneurs/aero-ogn-receiver/blob/main/QUICKSTART.md"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -90,11 +91,17 @@ read the full project documentation:
 
 {DOCS_URL}
 
+For the minimal plane-checking workflow:
+
+{QUICKSTART_URL}
+
 ## Check Status
 
 ```bash
+source {_q(venv_dir / "bin" / "activate")}
 {_q(aero_ogn)} status --live
 {_q(aero_ogn)} aircraft --watch 5
+{_q(aero_ogn)} aircraft --raw
 {_q(aero_ogn)} service status
 {_q(aero_ogn)} logs --lines 100
 {_q(aero_ogn)} logs traffic --follow

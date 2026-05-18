@@ -24,6 +24,9 @@ systemd. It does not start the receiver automatically.
 Use `--dry-run` to preview setup or uninstall actions without changing the
 machine.
 
+For the minimal field workflow to check whether planes are being received, see
+[QUICKSTART.md](QUICKSTART.md).
+
 ## OS Package Changes
 
 The privileged setup command is not a pure file copy. On Raspberry Pi OS it runs
@@ -179,10 +182,28 @@ and signal/frequency quality fields when those fields are present. Registration
 or immatriculation is only shown when the upstream decoder/device database
 provides it; otherwise the FLARM/OGN device ID is shown.
 
+Aircraft command reference:
+
+```bash
+aero-ogn aircraft              # one-shot local aircraft table
+aero-ogn aircraft --watch 5    # refresh the table every 5 seconds
+aero-ogn aircraft --raw        # print raw decoder aircraft-list rows
+aero-ogn aircraft --long       # use aircraft-list.txt instead of short
+```
+
 `aero-ogn logs traffic --follow` is the focused live view for APRS and decoded
 aircraft activity. It filters the decoder journal down to useful APRS send/login
 lines and polls the upstream decoder aircraft list endpoint when aircraft are
 currently decoded.
+
+Traffic log command reference:
+
+```bash
+aero-ogn logs traffic --follow
+aero-ogn logs aprs --follow
+aero-ogn logs traffic --follow --include-aprs-heartbeat
+aero-ogn logs traffic --follow --no-aircraft
+```
 
 The main field operations path is:
 
