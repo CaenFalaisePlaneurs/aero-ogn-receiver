@@ -446,16 +446,21 @@ def _reload_systemd(options: SetupOptions) -> None:
 def _print_next_steps(options: SetupOptions) -> None:
     if options.dry_run:
         return
+    aero_ogn = Path(sys.executable).with_name("aero-ogn")
+    aero_ogn_command = str(aero_ogn) if aero_ogn.exists() else "aero-ogn"
     print()
     print("Setup complete. Next steps:")
     print(f"1. Edit configuration: sudo nano {options.paths.config_path}")
-    print(f"2. Validate config: aero-ogn config validate --config {options.paths.config_path}")
+    print(
+        "2. Validate config: "
+        f"{aero_ogn_command} config validate --config {options.paths.config_path}"
+    )
     print(
         "3. Review rendered native config: "
-        f"aero-ogn config render --config {options.paths.config_path}"
+        f"{aero_ogn_command} config render --config {options.paths.config_path}"
     )
     print("4. Start services when ready: sudo systemctl enable --now aero-ogn-receiver.target")
-    print("5. Check status: aero-ogn status --live")
+    print(f"5. Check status: {aero_ogn_command} status --live")
 
 
 def _safe_extract_tar(archive_path: Path, destination: Path) -> None:
