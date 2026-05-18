@@ -1,6 +1,6 @@
 # aero-pi-ogn-receiver
 
-<img src="https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/docs/aero-pi-ogn-receiver_logo.png" alt="aero-pi-ogn-receiver logo" style="max-width: 20vw;">
+<img src="https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/docs/aero-pi-ogn-receiver_logo.png" alt="aero-pi-ogn-receiver logo" style="max-width: 10vw;">
 
 Installable OGN/FLARM receiver manager for Raspberry Pi.
 
