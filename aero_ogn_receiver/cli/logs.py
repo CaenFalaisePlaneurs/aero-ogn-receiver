@@ -191,13 +191,15 @@ def print_traffic_lines(lines: list[str], *, include_heartbeat: bool) -> None:
 
 
 def is_traffic_log_line(line: str, *, include_heartbeat: bool = False) -> bool:
+    if "HTTP_Server" in line:
+        return False
     if "APRS <-" in line:
         return True
     if "APRS_Sender" in line or "logresp" in line:
         return True
     if include_heartbeat and ("APRS ->" in line or "APRS time" in line):
         return True
-    return any(token in line for token in ("Aircraft", "aircraft", "Acft:", "Decoded:"))
+    return any(token in line for token in ("Aircraft:", "aircraft:", "Acft:", "Decoded:"))
 
 
 def print_aircraft_snapshot(

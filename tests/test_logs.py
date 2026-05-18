@@ -14,6 +14,11 @@ class LogFilterTests(unittest.TestCase):
         self.assertFalse(logs.is_traffic_log_line("APRS -> # aprsc 2.1.20 server banner"))
         self.assertFalse(logs.is_traffic_log_line("APRS time - system time = +0"))
         self.assertFalse(logs.is_traffic_log_line("HTTP_Server.Exec() ... Request for /status.html"))
+        self.assertFalse(
+            logs.is_traffic_log_line(
+                "HTTP_Server.Exec() ... Request for /aircraft-list-short.txt"
+            )
+        )
 
     def test_traffic_filter_can_include_heartbeat_lines(self):
         self.assertTrue(
