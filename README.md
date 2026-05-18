@@ -4,10 +4,9 @@ Installable OGN/FLARM receiver manager for Raspberry Pi.
 
 `aero-ogn-receiver` installs and manages an Open Glider Network receiver on an
 existing Raspberry Pi OS system. It does not build a custom Raspberry Pi image.
-The user workflow follows the same product shape as `aero-pi-cam`: create a
-user-owned virtual environment, install the package, run an explicit privileged
-setup command, edit one YAML config file, and operate the service through
-systemd plus a Pi Connect-friendly CLI.
+The user workflow is to create a user-owned virtual environment, install the
+package, run an explicit privileged setup command, edit one YAML config file,
+and operate the service through systemd plus a Pi Connect-friendly CLI.
 
 ## Current Status
 
@@ -24,6 +23,63 @@ systemd. It does not start the receiver automatically.
 
 Use `--dry-run` to preview setup or uninstall actions without changing the
 machine.
+
+## OS Package Changes
+
+The privileged setup command is not a pure file copy. On Raspberry Pi OS it runs
+`apt-get update` and installs the Debian packages required by the receiver
+runtime. It does not intentionally run a full system upgrade, but apt may still
+upgrade already-installed packages when Debian dependency resolution requires a
+newer matching version.
+
+Current setup dependencies include:
+
+```text
+rtl-sdr
+ca-certificates
+procserv
+```
+
+On 64-bit Raspberry Pi OS, `binary_arch: "auto"` currently selects the official
+32-bit ARM OGN binary for runtime compatibility. In that case setup enables the
+`armhf` foreign architecture if needed and installs the 32-bit runtime packages
+required by the OGN binary:
+
+```text
+libc6:armhf
+libstdc++6:armhf
+libgcc-s1:armhf
+librtlsdr0:armhf
+```
+
+This can also pull closely related dependency updates such as `systemd`, `udev`,
+or shared libraries if the local image package set is behind the current
+repository metadata. For the most reproducible production install, start from an
+up-to-date Raspberry Pi OS image and record the package changes from setup:
+
+```bash
+sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/python -m aero_ogn_receiver.setup.setup --dry-run
+sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/python -m aero_ogn_receiver.setup.setup
+grep " install \| upgrade " /var/log/apt/history.log
+```
+
+Setup writes `/var/lib/aero-ogn-receiver/install-state.json` to record the
+Debian packages and foreign architectures that were added by setup. The
+uninstaller can use that file to remove project-added packages later. It cannot
+safely roll back unrelated package upgrades that apt performed while resolving
+dependencies.
+
+To remove the receiver integration and binaries while preserving the user YAML
+configuration at `/etc/aero-ogn-receiver/config.yaml`:
+
+```bash
+sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/aero-ogn-uninstall --remove-binaries --remove-packages
+```
+
+That removes systemd units, generated native config, `/opt/aero-ogn-receiver`,
+state/log directories, setup-installed Debian packages, and any foreign
+architecture setup added when no packages still use it. Add `--purge` only when
+you also want to remove the preserved `/etc/aero-ogn-receiver` configuration.
 
 ## Installation Shape
 
@@ -61,7 +117,25 @@ the privileged setup step.
 
 ## CLI
 
-Implemented first-pass commands:
+The `aero-ogn` command is created by package installation. If the package is
+installed in the recommended virtual environment, either call it with the full
+venv path or add the venv `bin` directory to `PATH`:
+
+```bash
+/home/$(whoami)/aero-ogn-receiver-venv/bin/aero-ogn status --live
+export PATH="$HOME/aero-ogn-receiver-venv/bin:$PATH"
+aero-ogn status --live
+```
+
+From an unpacked source checkout that has not been installed, use the module
+form instead:
+
+```bash
+python3 -m aero_ogn_receiver status --live
+python3 -m aero_ogn_receiver config validate
+```
+
+Implemented first-pass commands, shown here using the installed entry point:
 
 ```bash
 aero-ogn config validate
@@ -168,8 +242,7 @@ python3 -m aero_ogn_receiver.setup.setup --dry-run
 ## License
 
 Project source code, installer code, templates, and documentation are licensed
-under GPL-3.0-or-later, matching the intended licensing model from
-`aero-pi-cam`.
+under GPL-3.0-or-later.
 
 Official OGN binaries are separate third-party runtime components and are not
 relicensed by this project. See `THIRD_PARTY.md` and `SECURITY.md`.

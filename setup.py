@@ -1,8 +1,8 @@
 """Setuptools hook for install-time data files.
 
-Project metadata lives in pyproject.toml. This file mirrors the aero-pi-cam
-pattern for installing the example config into a share directory where the
-privileged setup module can find it after pip installation.
+Project metadata lives in pyproject.toml. This file installs the example config
+into a share directory where the privileged setup module can find it after pip
+installation.
 """
 
 from pathlib import Path
@@ -19,4 +19,3 @@ setup(
     name="aero-ogn-receiver",
     data_files=data_files,
 )
-

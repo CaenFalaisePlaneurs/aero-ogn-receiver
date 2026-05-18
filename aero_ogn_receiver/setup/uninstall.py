@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -9,7 +10,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from aero_ogn_receiver.setup.setup import SYSTEMD_UNITS, SetupPaths
+from aero_ogn_receiver.setup.setup import INSTALL_STATE_FILENAME, SYSTEMD_UNITS, SetupPaths
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class UninstallOptions:
     dry_run: bool
     purge: bool
     remove_binaries: bool
+    remove_packages: bool
     no_daemon_reload: bool
     paths: SetupPaths
     root: Path | None
@@ -43,6 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Remove /opt/aero-ogn-receiver",
     )
     parser.add_argument(
+        "--remove-packages",
+        action="store_true",
+        help="Remove Debian packages and foreign architectures recorded as installed by setup",
+    )
+    parser.add_argument(
         "--no-daemon-reload",
         action="store_true",
         help="Do not run systemctl daemon-reload/reset-failed",
@@ -62,6 +69,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         dry_run=args.dry_run,
         purge=args.purge,
         remove_binaries=args.remove_binaries,
+        remove_packages=args.remove_packages,
         no_daemon_reload=args.no_daemon_reload or args.root is not None,
         paths=SetupPaths.under_root(args.root) if args.root else SetupPaths.system(),
         root=args.root,
@@ -69,7 +77,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     try:
         run_uninstall(options)
-    except (UninstallError, OSError) as exc:
+    except (UninstallError, OSError, subprocess.CalledProcessError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
     return 0
@@ -86,6 +94,7 @@ def run_uninstall(options: UninstallOptions) -> None:
     _remove_systemd_units(options)
     _reload_systemd(options)
     _remove_binaries(options)
+    _remove_packages(options)
     _remove_config_and_state(options)
     _print_summary(options)
 
@@ -150,15 +159,106 @@ def _remove_binaries(options: UninstallOptions) -> None:
 
 
 def _remove_config_and_state(options: UninstallOptions) -> None:
-    if not options.purge:
+    if options.purge:
+        config_targets = (options.paths.config_dir,)
+    else:
         _say(options, f"Preserve config: {options.paths.config_path}")
-        _say(options, f"Preserve state: {options.paths.state_dir}")
+        config_targets = (options.paths.native_config_path,)
+
+    for target in (*config_targets, options.paths.state_dir, options.paths.log_dir):
+        _say(options, f"Remove: {target}")
+        if options.dry_run or not target.exists():
+            continue
+        if target.is_dir():
+            shutil.rmtree(target)
+        else:
+            target.unlink()
+
+
+def _remove_packages(options: UninstallOptions) -> None:
+    if not options.remove_packages:
+        _say(options, "Preserve Debian packages")
+        return
+    if options.root is not None:
+        _say(options, "Skip Debian package removal under alternate root")
+        return
+    state = _read_install_state(options)
+    if not state:
+        _say(options, "Skip Debian package removal because install state is unavailable")
         return
 
-    for target in (options.paths.config_dir, options.paths.state_dir, options.paths.log_dir):
-        _say(options, f"Remove: {target}")
-        if not options.dry_run and target.exists():
-            shutil.rmtree(target)
+    packages = _string_list(state.get("packages_installed_by_setup"))
+    if packages:
+        command = [
+            "apt-get",
+            "purge",
+            "-y",
+            "--allow-remove-essential",
+            *packages,
+        ]
+        _run_package_command(options, command)
+        _run_package_command(options, ["apt-get", "autoremove", "-y"])
+    else:
+        _say(options, "No setup-installed Debian packages recorded")
+
+    for architecture in _string_list(state.get("foreign_architectures_added")):
+        _remove_foreign_architecture(options, architecture)
+
+
+def _read_install_state(options: UninstallOptions) -> dict[str, object] | None:
+    state_path = options.paths.state_dir / INSTALL_STATE_FILENAME
+    if not state_path.exists():
+        return None
+    try:
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise UninstallError(f"cannot read install state {state_path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise UninstallError(f"install state {state_path} is invalid")
+    return data
+
+
+def _string_list(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
+def _run_package_command(options: UninstallOptions, command: list[str]) -> None:
+    _say(options, "Run " + " ".join(command))
+    if options.dry_run:
+        return
+    env = {
+        **os.environ,
+        "DEBIAN_FRONTEND": "noninteractive",
+        "APT_LISTCHANGES_FRONTEND": "none",
+    }
+    subprocess.run(command, check=True, env=env)
+
+
+def _remove_foreign_architecture(options: UninstallOptions, architecture: str) -> None:
+    if _foreign_architecture_has_packages(architecture):
+        _say(options, f"Keep foreign architecture {architecture}; packages still installed")
+        return
+    command = ["dpkg", "--remove-architecture", architecture]
+    _say(options, "Run " + " ".join(command))
+    if not options.dry_run:
+        subprocess.run(command, check=False)
+
+
+def _foreign_architecture_has_packages(architecture: str) -> bool:
+    if not shutil.which("dpkg-query"):
+        return True
+    completed = subprocess.run(
+        ["dpkg-query", "-W", "-f=${binary:Package}\n"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        return True
+    suffix = f":{architecture}"
+    return any(line.strip().endswith(suffix) for line in completed.stdout.splitlines())
 
 
 def _print_summary(options: UninstallOptions) -> None:

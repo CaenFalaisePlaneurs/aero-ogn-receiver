@@ -24,6 +24,7 @@ class SetupIntegrationTests(unittest.TestCase):
 
             self.assertEqual(result, 0)
             self.assertTrue((root / "etc/aero-ogn-receiver/config.yaml").exists())
+            self.assertTrue((root / "var/lib/aero-ogn-receiver/install-state.json").exists())
             rendered = root / "etc/aero-ogn-receiver/rtlsdr-ogn.conf"
             self.assertIn('Call = "LFAS";', rendered.read_text(encoding="utf-8"))
             rf_unit = root / "etc/systemd/system/aero-ogn-rf.service"
@@ -51,6 +52,9 @@ class SetupIntegrationTests(unittest.TestCase):
             self.assertEqual(result, 0)
             self.assertFalse((root / "etc/systemd/system/aero-ogn-rf.service").exists())
             self.assertTrue((root / "etc/aero-ogn-receiver/config.yaml").exists())
+            self.assertFalse((root / "etc/aero-ogn-receiver/rtlsdr-ogn.conf").exists())
+            self.assertFalse((root / "var/lib/aero-ogn-receiver").exists())
+            self.assertFalse((root / "var/log/aero-ogn-receiver").exists())
 
     def test_uninstall_purge_removes_config_and_binaries_when_requested(self):
         with tempfile.TemporaryDirectory() as temp_dir:

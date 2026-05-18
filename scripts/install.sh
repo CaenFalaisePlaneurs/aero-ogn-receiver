@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Thin convenience installer for aero-ogn-receiver.
-# It follows the same user-owned virtual environment shape as aero-pi-cam.
+# It creates a user-owned virtual environment and installs this project into it.
 
 set -euo pipefail
 
@@ -35,6 +35,10 @@ Next steps:
   sudo nano /etc/aero-ogn-receiver/config.yaml
   sudo $VENV_DIR/bin/aero-ogn config validate
   sudo $VENV_DIR/bin/aero-ogn config render --output /etc/aero-ogn-receiver/rtlsdr-ogn.conf
+
+For interactive use:
+  $VENV_DIR/bin/aero-ogn status --live
+  export PATH="$VENV_DIR/bin:\$PATH"
 
 The setup command is explicit because it writes system files and downloads and
 verifies the pinned OGN runtime binaries.

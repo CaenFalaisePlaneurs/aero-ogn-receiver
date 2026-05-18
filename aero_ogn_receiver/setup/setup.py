@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import stat
@@ -39,6 +40,7 @@ SYSTEMD_UNITS = (
     "aero-ogn-decode.service",
     "aero-ogn-receiver.target",
 )
+INSTALL_STATE_FILENAME = "install-state.json"
 
 
 @dataclass(frozen=True)
@@ -168,8 +170,9 @@ def run_setup(options: SetupOptions) -> None:
 
     entry = load_manifest().get(options.version, options.arch)
 
-    _install_system_packages(options)
     _create_directories(options)
+    install_state = _install_system_packages(options)
+    _write_install_state(options, install_state)
     _install_config(options)
     _render_config(options)
     if options.skip_download:
@@ -192,16 +195,37 @@ def _require_root_unless_test_root(options: SetupOptions) -> None:
         )
 
 
-def _install_system_packages(options: SetupOptions) -> None:
+def _install_system_packages(options: SetupOptions) -> dict[str, object]:
+    state = {
+        "version": 1,
+        "binary_arch": options.arch,
+        "requested_packages": [],
+        "packages_preexisting": [],
+        "packages_installed_by_setup": [],
+        "foreign_architectures_preexisting": [],
+        "foreign_architectures_added": [],
+    }
     if options.skip_apt:
         _say(options, "Skip Debian package installation")
-        return
+        return state
     packages = _system_packages_for_binary_arch(options.arch)
+    foreign_architectures_before = _foreign_architectures()
+    preexisting_packages = _installed_packages(packages)
+    state["requested_packages"] = list(packages)
+    state["packages_preexisting"] = sorted(preexisting_packages)
+    state["foreign_architectures_preexisting"] = sorted(foreign_architectures_before)
     if options.arch == "arm" and host_os_architecture() == "arm64":
         _ensure_armhf_architecture(options)
+    foreign_architectures_after = _foreign_architectures()
+    state["foreign_architectures_added"] = sorted(
+        foreign_architectures_after - foreign_architectures_before
+    )
     _say(options, f"Install Debian packages: {', '.join(packages)}")
     if options.dry_run:
-        return
+        state["packages_installed_by_setup"] = [
+            package for package in packages if package not in preexisting_packages
+        ]
+        return state
     if not shutil.which("apt-get"):
         raise SetupError("apt-get not found; this setup command targets Raspberry Pi OS/Debian")
     env = {
@@ -225,6 +249,35 @@ def _install_system_packages(options: SetupOptions) -> None:
         check=True,
         env=env,
     )
+    installed_after = _installed_packages(packages)
+    state["packages_installed_by_setup"] = sorted(installed_after - preexisting_packages)
+    return state
+
+
+def _installed_packages(packages: Sequence[str]) -> set[str]:
+    if not packages or not shutil.which("dpkg-query"):
+        return set()
+    installed: set[str] = set()
+    for package in packages:
+        completed = subprocess.run(
+            ["dpkg-query", "-W", "-f=${db:Status-Abbrev}", package],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if completed.returncode == 0 and completed.stdout.startswith("ii "):
+            installed.add(package)
+    return installed
+
+
+def _write_install_state(options: SetupOptions, state: dict[str, object]) -> None:
+    state_path = options.paths.state_dir / INSTALL_STATE_FILENAME
+    _say(options, f"Write install state: {state_path}")
+    if options.dry_run:
+        return
+    options.paths.state_dir.mkdir(parents=True, exist_ok=True)
+    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    state_path.chmod(0o644)
 
 
 def _system_packages_for_binary_arch(binary_arch: str) -> tuple[str, ...]:
