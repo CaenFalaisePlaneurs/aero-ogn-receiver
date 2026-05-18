@@ -27,6 +27,7 @@ class CliTests(unittest.TestCase):
             ["config", "render", "--help"],
             ["binaries", "list", "--help"],
             ["status", "--help"],
+            ["aircraft", "--help"],
             ["logs", "--help"],
             ["logs", "traffic", "--help"],
             ["service", "status", "--help"],

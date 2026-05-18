@@ -94,6 +94,7 @@ read the full project documentation:
 
 ```bash
 {_q(aero_ogn)} status --live
+{_q(aero_ogn)} aircraft --watch 5
 {_q(aero_ogn)} service status
 {_q(aero_ogn)} logs --lines 100
 {_q(aero_ogn)} logs traffic --follow

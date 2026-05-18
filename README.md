@@ -163,12 +163,21 @@ aero-ogn binaries list
 aero-ogn status
 aero-ogn status --live
 aero-ogn status --watch 5
+aero-ogn aircraft
+aero-ogn aircraft --watch 5
 aero-ogn logs
 aero-ogn logs --follow
 aero-ogn logs traffic --follow
 aero-ogn service status
 aero-ogn healthcheck
 ```
+
+`aero-ogn aircraft` is the local aircraft tracking view. It reads the upstream
+decoder's `http://localhost:8081/aircraft-list-short.txt` endpoint and displays
+the identity available from the decoder, GPS position, altitude, speed, heading,
+and signal/frequency quality fields when those fields are present. Registration
+or immatriculation is only shown when the upstream decoder/device database
+provides it; otherwise the FLARM/OGN device ID is shown.
 
 `aero-ogn logs traffic --follow` is the focused live view for APRS and decoded
 aircraft activity. It filters the decoder journal down to useful APRS send/login

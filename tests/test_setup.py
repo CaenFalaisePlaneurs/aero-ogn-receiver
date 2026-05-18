@@ -42,6 +42,7 @@ class SetupIntegrationTests(unittest.TestCase):
             self.assertTrue(readme.exists())
             readme_text = readme.read_text(encoding="utf-8")
             self.assertIn("status --live", readme_text)
+            self.assertIn("aircraft --watch 5", readme_text)
             self.assertIn("logs traffic --follow", readme_text)
             self.assertIn("aero-ogn-uninstall --complete", readme_text)
             self.assertIn(
