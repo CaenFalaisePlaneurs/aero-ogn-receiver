@@ -46,7 +46,7 @@ class SetupIntegrationTests(unittest.TestCase):
             self.assertIn("aircraft --raw", readme_text)
             self.assertIn("logs traffic --follow", readme_text)
             self.assertIn(
-                "https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/quickstart/",
+                "https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/quickstart.html",
                 readme_text,
             )
             self.assertIn("aero-pi-ogn-uninstall --complete", readme_text)

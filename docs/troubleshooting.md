@@ -5,21 +5,94 @@ title: Troubleshooting
 
 # Troubleshooting
 
-## RTL-SDR USB Power
+Start with the health check:
 
-The RTL-SDR dongle is normally powered by the Raspberry Pi USB port. If the Pi
-power supply is marginal, or the dongle draws current in bursts, the receiver
-can become unstable even when the software is otherwise healthy. Symptoms can
-include USB disconnects, `rtl_test` failures, OGN RF restarts, high temperature,
-or Raspberry Pi undervoltage/throttle flags.
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+```
+
+If it reports `Overall: OK`, the services and basic system checks are healthy.
+If it reports `WARN` or `FAIL`, use the matching section below.
+
+---
+
+## Service will not start
+
+Check the service state:
+
+```bash
+sudo systemctl status aero-pi-ogn-rf.service aero-pi-ogn-decode.service --no-pager
+```
+
+Check recent logs:
+
+```bash
+sudo journalctl -u aero-pi-ogn-rf.service -u aero-pi-ogn-decode.service -n 100 --no-pager
+```
+
+Restart the receiver:
+
+```bash
+sudo systemctl restart aero-pi-ogn-receiver.target
+```
+
+Verify again:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+```
+
+If the services still fail, validate and render the configuration again:
+
+```bash
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config validate --config /etc/aero-pi-ogn-receiver/config.yaml
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config render --config /etc/aero-pi-ogn-receiver/config.yaml --output /etc/aero-pi-ogn-receiver/rtlsdr-ogn.conf
+sudo systemctl restart aero-pi-ogn-receiver.target
+```
+
+---
+
+## RTL-SDR USB receiver is missing
+
+Check USB detection:
+
+```bash
+lsusb
+```
+
+Check receiver health:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+```
+
+A missing USB receiver normally appears as:
+
+```text
+usb receiver        FAIL     no RTL-SDR USB device found
+```
+
+Try these checks:
+
+- Re-seat the RTL-SDR dongle.
+- Try another USB port.
+- Remove unneeded USB devices.
+- Reboot the Pi.
+- Test with a powered USB hub if the Pi power supply is marginal.
+
+---
+
+## Power or throttling issues
+
+The RTL-SDR dongle is powered by the Raspberry Pi USB port. A weak power supply
+can cause USB resets, RF service restarts, high temperature, or unstable
+decoder behavior.
 
 Check the current and historical Pi power state:
 
 ```bash
 vcgencmd get_throttled
 vcgencmd measure_temp
-python3 -m aero_pi_ogn_receiver status --live
-journalctl -u aero-pi-ogn-rf.service -u aero-pi-ogn-decode.service --since "1 hour ago" --no-pager
 ```
 
 Useful `get_throttled` bits:
@@ -33,44 +106,49 @@ Useful `get_throttled` bits:
 0x40000  throttling has occurred since boot
 ```
 
-Historical bits stay set until reboot. For a clean hardware comparison, record
-the value, reboot, then run the receiver for a representative period and check
-again.
+Historical bits stay set until reboot. For a clean comparison, record the
+value, reboot, run the receiver for a representative period, then check again.
 
-A powered USB hub is a valid reliability test. It can remove the dongle current
-draw from the Pi USB rail and may reduce undervoltage, USB resets, and RF noise
-coupled through Pi power. Use a good powered hub that does not backfeed 5V into
-the Raspberry Pi over USB.
+---
 
-## Antenna Or RF Path
+## Status is OK but no aircraft appear
 
-A bad antenna, feedline, adapter, active antenna/LNA, or bias tee configuration
-often does not look like a software failure. The services can be active, the
-USB SDR can be detected, and the receiver status can still show `Overall: OK`.
-The symptom is that the receiver does not see useful aircraft traffic.
-
-Typical commands:
+Run these checks:
 
 ```bash
-aero-pi-ogn status --live
-aero-pi-ogn aircraft --watch 5
-aero-pi-ogn logs traffic --follow
-aero-pi-ogn logs rf --follow
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn aircraft --watch 5
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn logs traffic --follow
 ```
 
-Common antenna/RF-path symptom pattern:
+This pattern usually means the software is alive but the receiver is not
+decoding useful traffic:
 
 ```text
 status --live      Overall: OK
 aircraft --watch   No aircraft currently tracked by the local decoder.
 logs traffic       APRS status repeatedly reports 0/0Acfts[1h]
-logs rf            BkgNoise stays unusually low/flat or high/unstable
 ```
 
-Example APRS status line with no aircraft received:
+Possible causes:
 
-```text
-APRS <- LFAS>OGNSDR:>095907h v0.3.2.ARM CPU:1.1 RAM:197.7/950.0MB NTP:0.0ms/-2.1ppm +70.9C EGM96:+47m 0/0Acfts[1h] RF:+0+0.0ppm/+3.31dB
+- No FLARM-equipped aircraft are nearby.
+- The antenna is disconnected or not suitable for 868 MHz.
+- The coax, adapter, or connector is damaged.
+- The antenna location is shielded or too low.
+- An active antenna or LNA is not powered correctly.
+- `radio.bias_tee` is wrong for the connected hardware.
+
+Confirm with a known nearby aircraft when possible.
+
+---
+
+## Antenna or RF-path problem
+
+Follow the RF logs:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn logs rf --follow
 ```
 
 Example RF noise line:
@@ -83,18 +161,64 @@ Interpretation:
 
 ```text
 Very low or flat BkgNoise + no aircraft
-  Possible disconnected antenna, broken coax, bad SMA/adapter, wrong antenna.
+  Possible disconnected antenna, broken coax, bad adapter, or wrong antenna.
 
 Very high or unstable BkgNoise + no/few aircraft
-  Possible overload, bad LNA, active antenna power issue, local interference,
-  or wrong bias tee setting.
+  Possible overload, bad LNA, active antenna power issue, local interference, or wrong bias tee setting.
 
 Only very close aircraft appear
-  Possible poor antenna placement, damaged antenna, lossy cable, water ingress,
-  bad ground plane, or antenna not tuned for 868 MHz.
+  Possible poor antenna placement, damaged antenna, lossy cable, water ingress, bad ground plane, or antenna not tuned for 868 MHz.
 ```
 
-The practical field test is to run `aero-pi-ogn aircraft --watch 5` while a known
-nearby aircraft with a working FLARM is transmitting. If the receiver remains
-healthy but the aircraft never appears, inspect the RF path before assuming a
-software issue.
+The practical field test is to run `aero-pi-ogn aircraft --watch 5` while a
+known nearby aircraft with working FLARM is transmitting.
+
+---
+
+## Configuration errors
+
+Validate the YAML file:
+
+```bash
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config validate --config /etc/aero-pi-ogn-receiver/config.yaml
+```
+
+Edit the file:
+
+```bash
+sudo nano /etc/aero-pi-ogn-receiver/config.yaml
+```
+
+Render the native OGN config again:
+
+```bash
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config render --config /etc/aero-pi-ogn-receiver/config.yaml --output /etc/aero-pi-ogn-receiver/rtlsdr-ogn.conf
+```
+
+Restart the receiver:
+
+```bash
+sudo systemctl restart aero-pi-ogn-receiver.target
+```
+
+---
+
+## Package or dependency issues
+
+Reinstall the Python package:
+
+```bash
+sudo systemctl stop aero-pi-ogn-receiver.target
+~/aero-pi-ogn-receiver-venv/bin/python -m pip install --upgrade --force-reinstall git+https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver.git
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/python -m aero_pi_ogn_receiver.setup.setup
+sudo systemctl start aero-pi-ogn-receiver.target
+```
+
+Verify health:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+```
+
+For normal service commands, see [Maintenance](maintenance.html). For deeper
+traffic and RF checks, see [Advanced Usage](advanced-usage.html).

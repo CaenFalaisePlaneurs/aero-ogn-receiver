@@ -23,6 +23,9 @@ python3 -m aero_pi_ogn_receiver status --live
 python3 -m aero_pi_ogn_receiver config validate
 ```
 
+For copy-paste field workflows, use [Quick Start](quickstart.html) first. For
+deeper aircraft, log, and RF workflows, use [Advanced Usage](advanced-usage.html).
+
 Implemented first-pass commands, shown here using the installed entry point:
 
 ```bash

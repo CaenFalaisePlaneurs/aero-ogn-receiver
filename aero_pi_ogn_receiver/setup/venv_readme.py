@@ -12,7 +12,7 @@ from pathlib import Path
 README_FILENAME = "README-aero-pi-ogn-receiver.md"
 DEFAULT_REPO_URL = "https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver.git"
 DOCS_URL = "https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/"
-QUICKSTART_URL = "https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/quickstart/"
+QUICKSTART_URL = "https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/quickstart.html"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -85,13 +85,13 @@ This file is generated for this virtual environment:
 {_q(venv_dir)}
 ```
 
-Use these commands for common receiver tasks. For configuration details,
-troubleshooting, binary architecture notes, and less common maintenance tasks,
-read the full project documentation:
+Use these commands for common receiver tasks. For the guided install,
+configuration details, troubleshooting, binary architecture notes, and less
+common maintenance tasks, read the full project documentation:
 
 {DOCS_URL}
 
-For the minimal plane-checking workflow:
+For the guided install and first receiver check:
 
 {QUICKSTART_URL}
 

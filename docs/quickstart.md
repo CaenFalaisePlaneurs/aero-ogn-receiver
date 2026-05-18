@@ -5,257 +5,231 @@ title: Quick Start
 
 # aero-pi-ogn-receiver Quick Start
 
-Minimal commands for checking whether the receiver sees aircraft.
+Follow these steps one by one on the Raspberry Pi. Copy and paste each command
+into your terminal.
 
-## 1. Open A Terminal On The Pi
+## Requirements
 
-Use Raspberry Pi Connect, SSH, or a local keyboard/monitor.
+- Raspberry Pi OS on a Raspberry Pi
+- RTL-SDR USB receiver connected to the Pi
+- OGN/FLARM antenna connected to the receiver
+- Internet access during installation
+- Your receiver location name, latitude, longitude, and altitude
 
-## 2. Activate The Virtual Environment
+---
 
-```bash
-source ~/aero-pi-ogn-receiver-venv/bin/activate
-```
+## Step 1: Install the basic tools
 
-After activation, the `aero-pi-ogn` command should be available directly.
-
-Example output:
-
-```text
-(aero-pi-ogn-receiver-venv) pi@raspberrypi:~ $
-```
-
-There is normally no command output; the shell prompt changes to show the venv.
-
-If there is an issue:
-
-```text
-bash: /home/pi/aero-pi-ogn-receiver-venv/bin/activate: No such file or directory
-```
-
-That means the virtual environment is not present at the expected path. The
-software may not be installed, or it may have been installed in a different
-venv.
-
-## 3. Check Receiver Health
+Install the Raspberry Pi packages needed to create the Python virtual
+environment and fetch the project:
 
 ```bash
-aero-pi-ogn status --live
+sudo apt update
+sudo apt install -y python3-venv git
 ```
 
-Look for `Overall: OK`.
-
-Example output:
-
-```text
-OGN receiver live status
-Receiver: LFAS
-Config:   /etc/aero-pi-ogn-receiver/config.yaml
-OGN:      0.3.2 auto -> arm, aprs.glidernet.org:14580
-
-Component           State    Evidence
-------------------  -------  --------
-config              OK       loaded /etc/aero-pi-ogn-receiver/config.yaml
-binary manifest     OK       0.3.2 arm, sha256 0fa9865295a3...
-installed binary    OK       /opt/aero-pi-ogn-receiver/ogn/current
-rf service          OK       aero-pi-ogn-rf.service active/running, pid 18041
-decode service      OK       aero-pi-ogn-decode.service active/running, pid 18042
-system time         OK       synchronized
-usb receiver        OK       Bus 001 Device 005: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
-rf status page      OK       http://localhost:8080/status.html
-decode status page  OK       http://localhost:8081/status.html
-cpu temperature     OK       73.1 C
-disk space          OK       49.0% free on /
-
-Overall: OK
-```
-
-If there is an issue, expect `Overall: WARN` or `Overall: FAIL`, with the
-problem shown on the matching component line.
-
-Example service issue:
-
-```text
-rf service          WARN     aero-pi-ogn-rf.service inactive/dead
-decode service      WARN     aero-pi-ogn-decode.service inactive/dead
-
-Overall: WARN
-```
-
-Example missing USB receiver:
-
-```text
-usb receiver        FAIL     no RTL-SDR USB device found
-
-Overall: FAIL
-```
-
-## 4. Watch Locally Decoded Aircraft
+**Verify Step 1 completed successfully:**
 
 ```bash
-aero-pi-ogn aircraft --watch 5
+python3 -m venv --help >/dev/null && git --version && echo "[OK] Basic tools are installed!" || echo "[FAIL] Install python3-venv and git again with: sudo apt install -y python3-venv git"
 ```
 
-This is the main field-debugging view. It shows aircraft identity when known,
-GPS position, altitude, speed, heading, and signal/frequency quality when the
-upstream decoder provides those fields.
+**Checkpoint: Step 1 complete. The Pi has the basic install tools.**
 
-Press `Ctrl-C` to stop watching.
+---
 
-Example output when no aircraft are currently decoded:
+## Step 2: Create a virtual environment
 
-```text
-Local decoded aircraft
-Source: http://localhost:8081/aircraft-list-short.txt
-Updated: 2026-05-18 12:19:09
-
-No aircraft currently tracked by the local decoder.
-```
-
-Example output when aircraft are decoded:
-
-```text
-Local decoded aircraft
-Source: http://localhost:8081/aircraft-list-short.txt
-Updated: 2026-05-18 14:03:25
-
-ID/REG     AGE   LAT        LON        ALT_M  KT  HDG  QUALITY
----------  ----  ---------  ---------  -----  --  ---  -----------------
-F-CABC     1.2s  48.92746   -0.14842   457    55  090  12.3/4.5dB +1.2kHz
-01:ABCDEF  4.8s  48.91234   -0.10231   612    72  135  10.1/3.8dB -0.4kHz
-```
-
-If there is an issue reaching the decoder endpoint:
-
-```text
-Aircraft list unavailable: <urlopen error [Errno 111] Connection refused>
-```
-
-That usually means `ogn-decode` is not running yet, has crashed, or the decoder
-HTTP status page is not reachable. Check `aero-pi-ogn status --live`.
-
-## 5. Inspect The Raw Aircraft Feed
+This creates an isolated space for the receiver manager:
 
 ```bash
-aero-pi-ogn aircraft --raw
+python3 -m venv ~/aero-pi-ogn-receiver-venv
 ```
 
-Use this if a plane is visible but the table looks incomplete or unexpected.
-
-Example output:
-
-```text
-Local decoded aircraft
-Source: http://localhost:8081/aircraft-list-short.txt
-Updated: 2026-05-18 14:03:25
-
-1.234s 01:ABCDEF [+48.92746, -000.14842]deg 457m, 090deg 055kt #02 12.3/4.5dB +1.2kHz
-FLRDDE1A3>OGFLR,qAS,LFAS:/074716h4726.50N/00922.64E'086/015/A=003848 id0ADDE1A3 14.5dB +0.5kHz
-```
-
-If no aircraft are currently decoded, the raw view prints the same empty-state
-message as the table view:
-
-```text
-No aircraft currently tracked by the local decoder.
-```
-
-If the endpoint is unreachable, expect an `Aircraft list unavailable: ...`
-error. Check receiver health with `aero-pi-ogn status --live`.
-
-## 6. Follow APRS And Traffic Logs
+**Verify Step 2 completed successfully:**
 
 ```bash
-aero-pi-ogn logs traffic --follow
+ls -d ~/aero-pi-ogn-receiver-venv && echo "[OK] Virtual environment created successfully!" || echo "[FAIL] Virtual environment creation failed. Try running: python3 -m venv ~/aero-pi-ogn-receiver-venv"
 ```
 
-Use this to confirm the receiver is sending APRS packets and to see traffic log
-activity. Press `Ctrl-C` to stop.
+**Checkpoint: Step 2 complete. The virtual environment exists.**
 
-Example output:
+---
 
-```text
-May 18 11:59:07 pi-nico-test procServ[18042]: APRS <- LFAS>OGNSDR:/095907h4855.64NI00008.90W&/A=000515
-May 18 11:59:07 pi-nico-test procServ[18042]: APRS <- LFAS>OGNSDR:>095907h v0.3.2.ARM CPU:1.1 RAM:197.7/950.0MB NTP:0.0ms/-2.1ppm +70.9C EGM96:+47m 0/0Acfts[1h] RF:+0+0.0ppm/+3.31dB
-2026-05-18 14:03:25 AIRCRAFT 1.234s 01:ABCDEF [+48.92746, -000.14842]deg 457m, 090deg 055kt #02 12.3/4.5dB +1.2kHz
-```
+## Step 3: Install the software
 
-If there is no immediate output, that can be normal. This command waits for new
-traffic, APRS, or aircraft-list changes. Leave it running for a few minutes, or
-open another terminal and run `aero-pi-ogn status --live`.
-
-If journald is unavailable or the service is missing, expect an error from
-`journalctl` or no matching unit logs. In that case, check:
+Install the latest project version from GitHub:
 
 ```bash
-aero-pi-ogn service status
+~/aero-pi-ogn-receiver-venv/bin/pip install git+https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver.git
 ```
 
-## 7. Recognize Antenna Or RF-Path Issues
+**Note**: This can take a few minutes. Wait for the command to finish.
 
-A faulty antenna, coax, connector, adapter, LNA, or wrong bias tee setting often
-does not crash the receiver. The software can look healthy while no useful RF is
-received.
-
-Typical pattern:
-
-```text
-aero-pi-ogn status --live      -> Overall: OK
-aero-pi-ogn aircraft --watch 5 -> No aircraft currently tracked by the local decoder.
-aero-pi-ogn logs traffic       -> APRS status keeps showing 0/0Acfts[1h]
-```
-
-Example traffic line:
-
-```text
-APRS <- LFAS>OGNSDR:>095907h v0.3.2.ARM CPU:1.1 RAM:197.7/950.0MB NTP:0.0ms/-2.1ppm +70.9C EGM96:+47m 0/0Acfts[1h] RF:+0+0.0ppm/+3.31dB
-```
-
-Check RF noise:
+**Verify Step 3 completed successfully:**
 
 ```bash
-aero-pi-ogn logs rf --follow
+~/aero-pi-ogn-receiver-venv/bin/pip show aero-pi-ogn-receiver && echo "[OK] Package installed successfully!" || echo "[FAIL] Package installation failed. Try running: ~/aero-pi-ogn-receiver-venv/bin/pip install git+https://github.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver.git"
 ```
 
-Example RF output:
+**Checkpoint: Step 3 complete. The receiver manager is installed.**
 
-```text
-BkgNoise = 4.1dB, Gain = 49.6dB [28]
-```
+---
 
-Suspicious signs:
+## Step 4: Run the setup
 
-```text
-BkgNoise very low or flat + 0 aircraft       disconnected antenna, bad coax, bad adapter
-BkgNoise very high or unstable + few aircraft overload, bad LNA, interference, wrong bias tee
-Only close aircraft appear                   poor placement, lossy coax, damaged antenna
-```
+This command will:
 
-The best practical check is to watch `aero-pi-ogn aircraft --watch 5` while a known
-aircraft with a working FLARM is nearby and transmitting.
+- Install required system packages (`rtl-sdr`, `procserv`, certificates, and OGN runtime dependencies)
+- Create `/etc/aero-pi-ogn-receiver/config.yaml`
+- Download and verify the pinned OGN receiver binaries
+- Install the systemd service units
+- Write a command sheet into the virtual environment
 
-## 8. Leave The Virtual Environment
+**Important**: This command needs root privileges to write system files. Use
+`sudo` without `-u`:
 
 ```bash
-deactivate
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/python -m aero_pi_ogn_receiver.setup.setup
 ```
 
-Example output:
+You will be asked for your password. Type it and press Enter.
 
-```text
-pi@raspberrypi:~ $
+**Verify Step 4 completed successfully:**
+
+```bash
+test -f /etc/aero-pi-ogn-receiver/config.yaml && test -f /etc/systemd/system/aero-pi-ogn-rf.service && test -f /etc/systemd/system/aero-pi-ogn-decode.service && echo "[OK] Setup completed successfully!" || echo "[FAIL] Setup failed. Try running: sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/python -m aero_pi_ogn_receiver.setup.setup"
 ```
 
-There is normally no command output; the shell prompt stops showing the venv.
+**Checkpoint: Step 4 complete. The system files and services are installed.**
 
-If there is an issue:
+---
 
-```text
-bash: deactivate: command not found
+## Step 5: Configure the receiver
+
+Edit the configuration file with your station and radio settings:
+
+```bash
+sudo nano /etc/aero-pi-ogn-receiver/config.yaml
 ```
 
-That means the shell is probably not inside the venv anymore. It is harmless.
+**What to change:**
 
-For install, upgrade, uninstall, troubleshooting, and hardware notes, read the
-[installation](installation.html), [operation](operation.html), and
-[troubleshooting](troubleshooting.html) docs.
+- `receiver.name`: Your receiver or airfield name, for example `LFAS`
+- `receiver.latitude`: Your receiver latitude
+- `receiver.longitude`: Your receiver longitude
+- `receiver.altitude_m`: Your receiver altitude in meters
+- `radio.ppm_correction`: Your SDR frequency correction, or `0` if unknown
+- `radio.bias_tee`: Use `true` only for compatible active antennas or LNAs
+- `ogn.aprs_server`: Keep `aprs.glidernet.org:14580` unless you know you need another server
+- `ogn.binary_arch`: Keep `"auto"` for normal Raspberry Pi installs
+
+Press `Ctrl+X`, then `Y`, then `Enter` to save and exit.
+
+**Verify Step 5 completed successfully:**
+
+```bash
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config validate --config /etc/aero-pi-ogn-receiver/config.yaml && echo "[OK] Configuration file is valid!" || echo "[FAIL] Configuration is invalid. Edit it again with: sudo nano /etc/aero-pi-ogn-receiver/config.yaml"
+```
+
+**Checkpoint: Step 5 complete. Your receiver configuration is valid.**
+
+---
+
+## Step 6: Render the OGN configuration
+
+The native OGN receiver programs read a generated config file. Render it after
+editing the YAML configuration:
+
+```bash
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn config render --config /etc/aero-pi-ogn-receiver/config.yaml --output /etc/aero-pi-ogn-receiver/rtlsdr-ogn.conf
+```
+
+**Verify Step 6 completed successfully:**
+
+```bash
+sudo test -f /etc/aero-pi-ogn-receiver/rtlsdr-ogn.conf && echo "[OK] OGN configuration rendered successfully!" || echo "[FAIL] OGN configuration was not rendered. Try the render command again."
+```
+
+**Checkpoint: Step 6 complete. The OGN runtime configuration is ready.**
+
+---
+
+## Step 7: Start the receiver
+
+Enable the receiver services and start them now:
+
+```bash
+sudo systemctl enable --now aero-pi-ogn-receiver.target
+```
+
+**Verify Step 7 completed successfully:**
+
+```bash
+sudo systemctl is-active --quiet aero-pi-ogn-rf.service && sudo systemctl is-active --quiet aero-pi-ogn-decode.service && echo "[OK] Receiver services started successfully!" || echo "[FAIL] Receiver services did not start. Check logs with: sudo journalctl -u aero-pi-ogn-rf.service -u aero-pi-ogn-decode.service -n 50"
+```
+
+**Checkpoint: Step 7 complete. The receiver services are running.**
+
+---
+
+## Step 8: Check receiver health
+
+Run the live health check:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live
+```
+
+You should see `Overall: OK`.
+
+**Verify Step 8 completed successfully:**
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn status --live | grep -q "Overall: OK" && echo "[OK] Receiver health is good!" || echo "[CHECK] Receiver reported WARN or FAIL. Read: https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/troubleshooting.html"
+```
+
+**Checkpoint: Step 8 complete. The receiver manager can inspect the system.**
+
+---
+
+## Step 9: Check for aircraft
+
+Watch the locally decoded aircraft table:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn aircraft --watch 5
+```
+
+Press `Ctrl+C` to stop watching.
+
+If aircraft are nearby and transmitting, you should see rows with an aircraft
+ID, position, altitude, speed, heading, and signal quality.
+
+If the output says `No aircraft currently tracked by the local decoder`, the
+software may still be working. Leave it running when a known FLARM-equipped
+aircraft is nearby. If the receiver stays healthy but never sees aircraft, read
+the [troubleshooting guide](troubleshooting.html).
+
+**Checkpoint: Step 9 complete. You know how to confirm local reception.**
+
+---
+
+## Viewing logs
+
+To see receiver traffic and APRS activity:
+
+```bash
+~/aero-pi-ogn-receiver-venv/bin/aero-pi-ogn logs traffic --follow
+```
+
+Press `Ctrl+C` to stop viewing logs.
+
+---
+
+## Next steps
+
+- [Advanced Usage](advanced-usage.html): Aircraft views, logs, raw decoder data, and RF checks
+- [Maintenance](maintenance.html): Service management, upgrades, config changes, and uninstall
+- [Troubleshooting](troubleshooting.html): Service, USB, power, antenna, and RF-path problems
+- [CLI Reference](cli.html): Full command reference

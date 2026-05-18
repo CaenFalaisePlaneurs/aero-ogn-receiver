@@ -5,6 +5,10 @@ title: Installation
 
 # Installation
 
+For a copy-paste first install with verification after each step, start with
+the [Quick Start](quickstart.html). This page documents the installer shape,
+system package changes, and uninstall behavior in more detail.
+
 ## Installation Shape
 
 These are the intended Pi commands:
@@ -32,7 +36,8 @@ machine.
 Setup writes a short command sheet into the virtual environment:
 `~/aero-pi-ogn-receiver-venv/README-aero-pi-ogn-receiver.md`. It contains the common
 status, service, config, upgrade, and uninstall commands, and points back to
-the full project documentation for troubleshooting and less common tasks.
+the full project documentation for [maintenance](maintenance.html),
+[troubleshooting](troubleshooting.html), and less common tasks.
 
 The package also exposes console entry points:
 
