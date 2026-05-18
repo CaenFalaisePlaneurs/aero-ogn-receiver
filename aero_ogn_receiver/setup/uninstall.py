@@ -247,6 +247,9 @@ def _run_package_command(options: UninstallOptions, command: list[str]) -> None:
 
 
 def _remove_foreign_architecture(options: UninstallOptions, architecture: str) -> None:
+    if options.dry_run:
+        _say(options, f"Remove foreign architecture {architecture} if no packages still use it")
+        return
     if _foreign_architecture_has_packages(architecture):
         _say(options, f"Keep foreign architecture {architecture}; packages still installed")
         return
