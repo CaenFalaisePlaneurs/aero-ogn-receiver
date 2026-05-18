@@ -14,6 +14,14 @@ source ~/aero-ogn-receiver-venv/bin/activate
 
 After activation, the `aero-ogn` command should be available directly.
 
+Example output:
+
+```text
+(aero-ogn-receiver-venv) pi@raspberrypi:~ $
+```
+
+There is normally no command output; the shell prompt changes to show the venv.
+
 ## 3. Check Receiver Health
 
 ```bash
@@ -21,6 +29,31 @@ aero-ogn status --live
 ```
 
 Look for `Overall: OK`.
+
+Example output:
+
+```text
+OGN receiver live status
+Receiver: LFAS
+Config:   /etc/aero-ogn-receiver/config.yaml
+OGN:      0.3.2 auto -> arm, aprs.glidernet.org:14580
+
+Component           State    Evidence
+------------------  -------  --------
+config              OK       loaded /etc/aero-ogn-receiver/config.yaml
+binary manifest     OK       0.3.2 arm, sha256 0fa9865295a3...
+installed binary    OK       /opt/aero-ogn-receiver/ogn/current
+rf service          OK       aero-ogn-rf.service active/running, pid 18041
+decode service      OK       aero-ogn-decode.service active/running, pid 18042
+system time         OK       synchronized
+usb receiver        OK       Bus 001 Device 005: ID 0bda:2838 Realtek Semiconductor Corp. RTL2838 DVB-T
+rf status page      OK       http://localhost:8080/status.html
+decode status page  OK       http://localhost:8081/status.html
+cpu temperature     OK       73.1 C
+disk space          OK       49.0% free on /
+
+Overall: OK
+```
 
 ## 4. Watch Locally Decoded Aircraft
 
@@ -34,6 +67,29 @@ upstream decoder provides those fields.
 
 Press `Ctrl-C` to stop watching.
 
+Example output when no aircraft are currently decoded:
+
+```text
+Local decoded aircraft
+Source: http://localhost:8081/aircraft-list-short.txt
+Updated: 2026-05-18 12:19:09
+
+No aircraft currently tracked by the local decoder.
+```
+
+Example output when aircraft are decoded:
+
+```text
+Local decoded aircraft
+Source: http://localhost:8081/aircraft-list-short.txt
+Updated: 2026-05-18 14:03:25
+
+ID/REG     AGE   LAT        LON        ALT_M  KT  HDG  QUALITY
+---------  ----  ---------  ---------  -----  --  ---  -----------------
+F-CABC     1.2s  48.92746   -0.14842   457    55  090  12.3/4.5dB +1.2kHz
+01:ABCDEF  4.8s  48.91234   -0.10231   612    72  135  10.1/3.8dB -0.4kHz
+```
+
 ## 5. Inspect The Raw Aircraft Feed
 
 ```bash
@@ -41,6 +97,17 @@ aero-ogn aircraft --raw
 ```
 
 Use this if a plane is visible but the table looks incomplete or unexpected.
+
+Example output:
+
+```text
+Local decoded aircraft
+Source: http://localhost:8081/aircraft-list-short.txt
+Updated: 2026-05-18 14:03:25
+
+1.234s 01:ABCDEF [+48.92746, -000.14842]deg 457m, 090deg 055kt #02 12.3/4.5dB +1.2kHz
+FLRDDE1A3>OGFLR,qAS,LFAS:/074716h4726.50N/00922.64E'086/015/A=003848 id0ADDE1A3 14.5dB +0.5kHz
+```
 
 ## 6. Follow APRS And Traffic Logs
 
@@ -51,11 +118,27 @@ aero-ogn logs traffic --follow
 Use this to confirm the receiver is sending APRS packets and to see traffic log
 activity. Press `Ctrl-C` to stop.
 
+Example output:
+
+```text
+May 18 11:59:07 pi-nico-test procServ[18042]: APRS <- LFAS>OGNSDR:/095907h4855.64NI00008.90W&/A=000515
+May 18 11:59:07 pi-nico-test procServ[18042]: APRS <- LFAS>OGNSDR:>095907h v0.3.2.ARM CPU:1.1 RAM:197.7/950.0MB NTP:0.0ms/-2.1ppm +70.9C EGM96:+47m 0/0Acfts[1h] RF:+0+0.0ppm/+3.31dB
+2026-05-18 14:03:25 AIRCRAFT 1.234s 01:ABCDEF [+48.92746, -000.14842]deg 457m, 090deg 055kt #02 12.3/4.5dB +1.2kHz
+```
+
 ## 7. Leave The Virtual Environment
 
 ```bash
 deactivate
 ```
+
+Example output:
+
+```text
+pi@raspberrypi:~ $
+```
+
+There is normally no command output; the shell prompt stops showing the venv.
 
 For install, upgrade, uninstall, troubleshooting, and hardware notes, read
 `README.md`.
