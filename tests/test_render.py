@@ -1,8 +1,8 @@
 import unittest
 
-from aero_ogn_receiver.core import paths
-from aero_ogn_receiver.core.config_model import load_config, parse_config
-from aero_ogn_receiver.core.render import render_ogn_config
+from aero_pi_ogn_receiver.core import paths
+from aero_pi_ogn_receiver.core.config_model import load_config, parse_config
+from aero_pi_ogn_receiver.core.render import render_ogn_config
 
 
 class RenderTests(unittest.TestCase):

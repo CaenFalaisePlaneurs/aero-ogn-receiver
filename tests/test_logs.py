@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from aero_ogn_receiver.cli import logs
+from aero_pi_ogn_receiver.cli import logs
 
 
 class LogFilterTests(unittest.TestCase):

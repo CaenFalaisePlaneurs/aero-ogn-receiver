@@ -1,0 +1,31 @@
+title: aero-pi-ogn-receiver
+description: Installable OGN/FLARM receiver manager for Raspberry Pi.
+url: https://caenfalaiseplaneurs.github.io
+baseurl: /aero-pi-ogn-receiver
+logo: /aero-pi-ogn-receiver_logo.png
+theme: jekyll-theme-minimal
+permalink: pretty
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
+nav:
+  - title: Home
+    url: ./
+  - title: Quick Start
+    url: quickstart/
+  - title: Installation
+    url: installation/
+  - title: CLI
+    url: cli/
+  - title: Operations
+    url: operation/
+  - title: Binaries
+    url: binaries/
+  - title: Troubleshooting
+    url: troubleshooting/
+  - title: Security
+    url: security/
+  - title: Development
+    url: development/

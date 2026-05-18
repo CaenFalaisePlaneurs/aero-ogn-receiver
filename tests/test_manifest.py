@@ -1,6 +1,6 @@
 import unittest
 
-from aero_ogn_receiver.core.manifest import ManifestError, load_manifest, parse_manifest
+from aero_pi_ogn_receiver.core.manifest import ManifestError, load_manifest, parse_manifest
 
 
 class ManifestTests(unittest.TestCase):

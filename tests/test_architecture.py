@@ -1,6 +1,6 @@
 import unittest
 
-from aero_ogn_receiver.core.architecture import resolve_binary_arch
+from aero_pi_ogn_receiver.core.architecture import resolve_binary_arch
 
 
 class ArchitectureTests(unittest.TestCase):

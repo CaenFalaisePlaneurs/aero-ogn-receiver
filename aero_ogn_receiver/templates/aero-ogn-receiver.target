@@ -1,8 +1,0 @@
-[Unit]
-Description=Aero OGN receiver
-Wants=aero-ogn-rf.service aero-ogn-decode.service
-After=network-online.target time-sync.target
-
-[Install]
-WantedBy=multi-user.target
-

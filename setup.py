@@ -13,9 +13,9 @@ from setuptools import setup
 config_example = Path(__file__).parent / "config.example.yaml"
 data_files = []
 if config_example.exists():
-    data_files.append(("usr/share/aero-ogn-receiver", [str(config_example.name)]))
+    data_files.append(("usr/share/aero-pi-ogn-receiver", [str(config_example.name)]))
 
 setup(
-    name="aero-ogn-receiver",
+    name="aero-pi-ogn-receiver",
     data_files=data_files,
 )

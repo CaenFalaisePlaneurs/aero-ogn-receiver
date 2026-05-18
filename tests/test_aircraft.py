@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from aero_ogn_receiver.cli import aircraft
+from aero_pi_ogn_receiver.cli import aircraft
 
 
 class AircraftTests(unittest.TestCase):

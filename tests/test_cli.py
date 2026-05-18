@@ -4,21 +4,21 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from aero_ogn_receiver.cli.main import main
-from aero_ogn_receiver.core import paths
+from aero_pi_ogn_receiver.cli.main import main
+from aero_pi_ogn_receiver.core import paths
 
 
 class CliTests(unittest.TestCase):
     def test_module_help_runs(self):
         completed = subprocess.run(
-            [sys.executable, "-m", "aero_ogn_receiver", "--help"],
+            [sys.executable, "-m", "aero_pi_ogn_receiver", "--help"],
             check=False,
             capture_output=True,
             text=True,
         )
 
         self.assertEqual(completed.returncode, 0)
-        self.assertIn("aero-ogn", completed.stdout)
+        self.assertIn("aero-pi-ogn", completed.stdout)
 
     def test_required_commands_provide_help(self):
         commands = [
@@ -36,7 +36,7 @@ class CliTests(unittest.TestCase):
         for command in commands:
             with self.subTest(command=command):
                 completed = subprocess.run(
-                    [sys.executable, "-m", "aero_ogn_receiver", *command],
+                    [sys.executable, "-m", "aero_pi_ogn_receiver", *command],
                     check=False,
                     capture_output=True,
                     text=True,

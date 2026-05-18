@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from aero_ogn_receiver.core.checksums import (
+from aero_pi_ogn_receiver.core.checksums import (
     ChecksumMismatch,
     md5_file,
     sha256_file,

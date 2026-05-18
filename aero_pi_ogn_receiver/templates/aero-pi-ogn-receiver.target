@@ -1,0 +1,7 @@
+[Unit]
+Description=Aero Pi OGN receiver
+Wants=aero-pi-ogn-rf.service aero-pi-ogn-decode.service
+After=network-online.target time-sync.target
+
+[Install]
+WantedBy=multi-user.target

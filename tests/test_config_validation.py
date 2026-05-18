@@ -1,7 +1,7 @@
 import unittest
 
-from aero_ogn_receiver.core import paths
-from aero_ogn_receiver.core.config_model import ConfigError, load_config, parse_config
+from aero_pi_ogn_receiver.core import paths
+from aero_pi_ogn_receiver.core.config_model import ConfigError, load_config, parse_config
 
 
 class ConfigValidationTests(unittest.TestCase):

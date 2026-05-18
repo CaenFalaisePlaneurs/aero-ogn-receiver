@@ -1,6 +1,6 @@
 import unittest
 
-from aero_ogn_receiver.cli.status import _find_rtl_sdr_usb_device
+from aero_pi_ogn_receiver.cli.status import _find_rtl_sdr_usb_device
 
 
 class StatusTests(unittest.TestCase):
