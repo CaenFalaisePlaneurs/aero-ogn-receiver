@@ -40,6 +40,10 @@ For interactive use:
   $VENV_DIR/bin/aero-ogn status --live
   export PATH="$VENV_DIR/bin:\$PATH"
 
+To uninstall the system integration while preserving /etc/aero-ogn-receiver/config.yaml:
+  sudo $VENV_DIR/bin/aero-ogn-uninstall --complete
+  rm -rf "$VENV_DIR"
+
 The setup command is explicit because it writes system files and downloads and
 verifies the pinned OGN runtime binaries.
 EOF

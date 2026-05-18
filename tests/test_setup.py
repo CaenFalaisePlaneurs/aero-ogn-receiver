@@ -82,6 +82,26 @@ class SetupIntegrationTests(unittest.TestCase):
             self.assertFalse((root / "etc/aero-ogn-receiver").exists())
             self.assertFalse(opt_dir.exists())
 
+    def test_complete_uninstall_preserves_config_and_removes_project_state(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            with redirect_stdout(StringIO()):
+                setup_result = setup.main(
+                    ["--root", str(root), "--skip-download", "--no-daemon-reload"]
+                )
+            self.assertEqual(setup_result, 0)
+
+            with redirect_stdout(StringIO()):
+                result = uninstall.main(["--root", str(root), "--complete"])
+
+            self.assertEqual(result, 0)
+            self.assertTrue((root / "etc/aero-ogn-receiver/config.yaml").exists())
+            self.assertFalse((root / "etc/aero-ogn-receiver/rtlsdr-ogn.conf").exists())
+            self.assertFalse((root / "etc/systemd/system/aero-ogn-rf.service").exists())
+            self.assertFalse((root / "opt/aero-ogn-receiver").exists())
+            self.assertFalse((root / "var/lib/aero-ogn-receiver").exists())
+            self.assertFalse((root / "var/log/aero-ogn-receiver").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

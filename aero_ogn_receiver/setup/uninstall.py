@@ -17,6 +17,7 @@ from aero_ogn_receiver.setup.setup import INSTALL_STATE_FILENAME, SYSTEMD_UNITS,
 class UninstallOptions:
     dry_run: bool
     purge: bool
+    complete: bool
     remove_binaries: bool
     remove_packages: bool
     no_daemon_reload: bool
@@ -38,6 +39,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--purge",
         action="store_true",
         help="Remove preserved config/state as well as service integration",
+    )
+    parser.add_argument(
+        "--complete",
+        action="store_true",
+        help=(
+            "Remove receiver integration, OGN binaries, recorded Debian packages, "
+            "state, and logs while preserving /etc/aero-ogn-receiver/config.yaml"
+        ),
     )
     parser.add_argument(
         "--remove-binaries",
@@ -68,8 +77,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     options = UninstallOptions(
         dry_run=args.dry_run,
         purge=args.purge,
-        remove_binaries=args.remove_binaries,
-        remove_packages=args.remove_packages,
+        complete=args.complete,
+        remove_binaries=args.remove_binaries or args.complete,
+        remove_packages=args.remove_packages or args.complete,
         no_daemon_reload=args.no_daemon_reload or args.root is not None,
         paths=SetupPaths.under_root(args.root) if args.root else SetupPaths.system(),
         root=args.root,
@@ -270,6 +280,14 @@ def _print_summary(options: UninstallOptions) -> None:
         print(f"Configuration was preserved at: {options.paths.config_path}")
     if not options.remove_binaries:
         print(f"OGN binary directory was preserved at: {options.paths.opt_dir}")
+    if _running_inside_virtualenv():
+        print()
+        print("To remove the user-owned Python virtual environment after this command exits:")
+        print(f"  rm -rf {sys.prefix}")
+
+
+def _running_inside_virtualenv() -> bool:
+    return sys.prefix != getattr(sys, "base_prefix", sys.prefix)
 
 
 def _say(options: UninstallOptions, message: str) -> None:

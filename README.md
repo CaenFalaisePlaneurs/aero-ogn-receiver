@@ -73,7 +73,7 @@ To remove the receiver integration and binaries while preserving the user YAML
 configuration at `/etc/aero-ogn-receiver/config.yaml`:
 
 ```bash
-sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/aero-ogn-uninstall --remove-binaries --remove-packages
+sudo /home/$(whoami)/aero-ogn-receiver-venv/bin/aero-ogn-uninstall --complete
 ```
 
 That removes systemd units, generated native config, `/opt/aero-ogn-receiver`,
@@ -81,10 +81,24 @@ state/log directories, setup-installed Debian packages, and any foreign
 architecture setup added when no packages still use it. Add `--purge` only when
 you also want to remove the preserved `/etc/aero-ogn-receiver` configuration.
 
+The uninstaller prints the follow-up command for removing the user-owned Python
+virtual environment after it exits. With the recommended install path, that is:
+
+```bash
+rm -rf ~/aero-ogn-receiver-venv
+```
+
+If `git` was installed only to fetch this project and is no longer needed on the
+Pi, remove that prerequisite separately:
+
+```bash
+sudo apt purge -y git git-man liberror-perl
+sudo apt autoremove -y
+```
+
 ## Installation Shape
 
-These are the intended Pi commands once the real setup implementation is filled
-in:
+These are the intended Pi commands:
 
 ```bash
 sudo apt update
