@@ -9,6 +9,17 @@ For a copy-paste first install with verification after each step, start with
 the [Quick Start](quickstart.html). This page documents the installer shape,
 system package changes, and uninstall behavior in more detail.
 
+## Hardware Requirements
+
+Use Raspberry Pi OS on a Raspberry Pi 3B or newer for reliable real-time OGN
+reception. Very old single-core models such as Raspberry Pi 1 and Raspberry Pi
+Model B+ can install the software, but they may not keep up with the RF and
+decoder workload.
+
+An RTL-SDR dongle should have stable USB power. A powered USB hub can help with
+USB power stability, but it does not replace CPU capacity: a single-core
+700 MHz Pi can still fall behind even when the SDR is powered correctly.
+
 ## Installation Shape
 
 These are the intended Pi commands:

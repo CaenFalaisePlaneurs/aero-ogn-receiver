@@ -143,6 +143,65 @@ Confirm with a known nearby aircraft when possible.
 
 ---
 
+## Repeated APRS reconnects or decoder restarts
+
+If `aero-pi-ogn logs traffic --follow` repeatedly shows APRS startup and login
+messages, the APRS server may not be the real problem:
+
+```text
+APRS_Sender.Exec() ... Start
+APRS_Sender.Exec() ... Connected to aprs.glidernet.org:14580, login sent
+APRS -> # logresp LFAS verified, server GLIDERN2
+```
+
+Check the full service logs:
+
+```bash
+sudo journalctl -u aero-pi-ogn-rf.service -u aero-pi-ogn-decode.service -n 200 --no-pager
+```
+
+If the logs also show messages like these, the local OGN runtime is not keeping
+up with real-time decoding:
+
+```text
+Demodulator is 17sec behind !
+RF_Acq.Exec() ... Dropped a slot
+Received a sigChild for process ... The process was killed by signal 11
+Restarting child "./ogn-decode"
+```
+
+On a very old Raspberry Pi, such as a Raspberry Pi 1 or Model B+ with one
+700 MHz ARMv6 CPU core, `ogn-rf` and `ogn-decode` can saturate the CPU. The
+systemd services may still look active because procServ restarts the crashed
+child process, but reception will not be reliable.
+
+Check the Pi model and load:
+
+```bash
+cat /proc/device-tree/model
+nproc
+uptime
+vcgencmd get_throttled
+```
+
+Expected signs of a CPU-underpowered Pi:
+
+```text
+Raspberry Pi Model B Plus Rev 1.2
+nproc -> 1
+load average much higher than 1.0
+Demodulator is ... behind
+ogn-decode killed by signal 11
+```
+
+Use a newer Raspberry Pi with multiple CPU cores for reliable reception. A
+powered USB hub can help with SDR power stability, but it will not fix a CPU
+that cannot keep up with OGN decoding. In this case, "underpowered" means the
+Pi CPU is too small for the real-time RF/decoder workload, not that the RTL-SDR
+dongle necessarily needs more USB power.
+
+---
+
 ## Antenna or RF-path problem
 
 Follow the RF logs:
@@ -204,6 +263,49 @@ sudo systemctl restart aero-pi-ogn-receiver.target
 ---
 
 ## Package or dependency issues
+
+### Step 4 fails with `Failed to fetch` or `Unable to fetch some archives`
+
+During setup, Step 4 runs APT to install Raspberry Pi OS packages such as
+`rtl-sdr`, `ca-certificates`, and `procserv`. Errors like this usually mean the
+selected Debian/Raspbian mirror is temporarily unavailable, stale, or
+unreachable:
+
+```text
+Failed to fetch http://mirror.ircam.fr/...
+Unable to fetch some archives
+```
+
+Retry the package index update, then rerun Step 4:
+
+```bash
+sudo apt clean
+sudo apt update
+sudo /home/$(whoami)/aero-pi-ogn-receiver-venv/bin/python -m aero_pi_ogn_receiver.setup.setup
+```
+
+If the same mirror keeps failing, wait a few minutes and retry. If it still
+fails, check which APT sources the Pi is using:
+
+```bash
+cat /etc/apt/sources.list
+cat /etc/apt/sources.list.d/*.sources
+cat /etc/apt/sources.list.d/*.list 2>/dev/null
+```
+
+On Raspberry Pi OS, the normal sources should point to Raspberry Pi/Raspbian
+package servers such as:
+
+```text
+http://raspbian.raspberrypi.com/raspbian/
+http://archive.raspberrypi.com/debian/
+```
+
+If a third-party mirror is configured directly and keeps failing, switch back to
+the normal Raspberry Pi OS package sources or another working local mirror, then
+run `sudo apt update` and rerun Step 4.
+
+### Python package reinstall
 
 Reinstall the Python package:
 

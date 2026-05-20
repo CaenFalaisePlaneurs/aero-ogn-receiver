@@ -10,11 +10,16 @@ into your terminal.
 
 ## Requirements
 
-- Raspberry Pi OS on a Raspberry Pi
+- Raspberry Pi OS on a Raspberry Pi 3B or newer for reliable real-time reception
 - RTL-SDR USB receiver connected to the Pi
 - OGN/FLARM antenna connected to the receiver
 - Internet access during installation
 - Your receiver location name, latitude, longitude, and altitude
+
+Very old single-core models such as Raspberry Pi 1 and Raspberry Pi Model B+
+can install the software, but they may not keep up with real-time OGN decoding.
+Typical symptoms are decoder restarts, `Demodulator is ... behind`, RF dropped
+slots, and no reliable aircraft reception.
 
 ---
 

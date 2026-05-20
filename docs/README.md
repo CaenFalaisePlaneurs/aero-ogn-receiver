@@ -9,6 +9,11 @@ title: aero-pi-ogn-receiver
 
 Installable OGN/FLARM receiver manager for Raspberry Pi.
 
+Recommended receiver hardware: Raspberry Pi 3B or newer. Very old single-core
+models such as Raspberry Pi 1 and Raspberry Pi Model B+ can install the project,
+but they may not keep up with real-time OGN decoding and are not recommended
+for production reception.
+
 Project documentation is published at
 [caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver](https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/).
 

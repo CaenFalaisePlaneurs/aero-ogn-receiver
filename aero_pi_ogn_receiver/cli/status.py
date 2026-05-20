@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import platform
 import shutil
 import subprocess
 import time
@@ -87,6 +89,8 @@ def collect_status(*, live: bool = False) -> StatusReport:
                 _status_page_check(
                     "decode status page", "http://localhost:8081/status.html"
                 ),
+                _runtime_stability_check(),
+                _host_capacity_check(),
                 _cpu_temperature_check(),
                 _disk_space_check(),
             ]
@@ -272,6 +276,77 @@ def _status_page_check(component: str, url: str) -> StatusCheck:
         return StatusCheck(component, "UNKNOWN", f"{url} unavailable: {exc.reason}")
     except TimeoutError:
         return StatusCheck(component, "WARN", f"{url} timed out")
+
+
+def _runtime_stability_check() -> StatusCheck:
+    if not systemd.command_available("journalctl"):
+        return StatusCheck("runtime stability", "UNKNOWN", "journalctl is not available")
+    command = systemd.journalctl_command("all", lines=300, since="10 minutes ago")
+    completed = subprocess.run(command, check=False, capture_output=True, text=True)
+    if completed.returncode != 0:
+        message = (completed.stderr or completed.stdout).strip() or "journalctl failed"
+        return StatusCheck("runtime stability", "UNKNOWN", message)
+    return _runtime_stability_from_journal(completed.stdout)
+
+
+def _runtime_stability_from_journal(journal_output: str) -> StatusCheck:
+    child_crashes = _count_lines(journal_output, "killed by signal")
+    child_restarts = _count_lines(journal_output, "Restarting child")
+    demod_lag = _count_lines(journal_output, "Demodulator is")
+    dropped_slots = _count_lines(journal_output, "Dropped a slot")
+    if child_crashes:
+        return StatusCheck(
+            "runtime stability",
+            "FAIL",
+            (
+                f"{child_crashes} child crash(es), {child_restarts} child restart(s), "
+                f"{demod_lag} demod lag warning(s), {dropped_slots} RF dropped slot(s)"
+            ),
+        )
+    if child_restarts or demod_lag or dropped_slots:
+        return StatusCheck(
+            "runtime stability",
+            "WARN",
+            (
+                f"{child_restarts} child restart(s), {demod_lag} demod lag warning(s), "
+                f"{dropped_slots} RF dropped slot(s)"
+            ),
+        )
+    return StatusCheck("runtime stability", "OK", "no recent child crashes or RF lag warnings")
+
+
+def _count_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if marker in line)
+
+
+def _host_capacity_check() -> StatusCheck:
+    machine = platform.machine()
+    cpu_count = _cpu_count()
+    model = _raspberry_pi_model()
+    description_parts = []
+    if model:
+        description_parts.append(model)
+    description_parts.extend([machine, f"{cpu_count} CPU(s)"])
+    description = ", ".join(description_parts)
+    if machine == "armv6l" or cpu_count <= 1:
+        return StatusCheck(
+            "host capacity",
+            "WARN",
+            f"{description}; may not keep up with real-time OGN decoding",
+        )
+    return StatusCheck("host capacity", "OK", description)
+
+
+def _cpu_count() -> int:
+    return max(1, int((os.cpu_count() or 1)))
+
+
+def _raspberry_pi_model() -> str | None:
+    model_path = Path("/proc/device-tree/model")
+    try:
+        return model_path.read_text(encoding="utf-8").rstrip("\x00\n")
+    except OSError:
+        return None
 
 
 def _cpu_temperature_check() -> StatusCheck:
