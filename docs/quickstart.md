@@ -23,6 +23,21 @@ slots, and no reliable aircraft reception.
 
 ---
 
+## One-command install
+
+On the target Raspberry Pi, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/scripts/install.sh | sh
+```
+
+The installer uses the packaged `config.example.yaml` by default and automates
+Steps 1 through 8 below. Edit `/etc/aero-pi-ogn-receiver/config.yaml` after
+installation if you need receiver-specific values. If you prefer to verify every
+step manually, follow the commands below instead.
+
+---
+
 ## Step 1: Install the basic tools
 
 Install the Raspberry Pi packages needed to create the Python virtual

@@ -17,6 +17,12 @@ for production reception.
 Project documentation is published at
 [caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver](https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/).
 
+Install on a target Raspberry Pi:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/scripts/install.sh | sh
+```
+
 Start here:
 
 - [Quick start](https://caenfalaiseplaneurs.github.io/aero-pi-ogn-receiver/quickstart.html)

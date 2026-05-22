@@ -22,7 +22,35 @@ USB power stability, but it does not replace CPU capacity: a single-core
 
 ## Installation Shape
 
-These are the intended Pi commands:
+For a first install on the target Raspberry Pi, run the interactive installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/scripts/install.sh | sh
+```
+
+The script installs the base Debian tools, creates
+`~/aero-pi-ogn-receiver-venv`, installs the latest package from GitHub, runs the
+privileged setup, uses the packaged example configuration by default, validates
+and renders the native OGN config, enables the systemd target, and runs a live
+status check.
+
+To override the example configuration during provisioning, provide receiver
+values as environment variables before the pipe:
+
+```bash
+export AERO_PI_OGN_RECEIVER_NAME=LFAS
+export AERO_PI_OGN_LATITUDE=48.92746
+export AERO_PI_OGN_LONGITUDE=-0.14842
+export AERO_PI_OGN_ALTITUDE_M=157
+curl -fsSL https://raw.githubusercontent.com/CaenFalaisePlaneurs/aero-pi-ogn-receiver/main/scripts/install.sh | sh
+```
+
+Use `AERO_PI_OGN_START_SERVICES=0` if the SDR hardware is not connected yet and
+you want to install without starting the receiver services. Use
+`AERO_PI_OGN_RECONFIGURE=1` to force the installer to replace an existing
+`/etc/aero-pi-ogn-receiver/config.yaml` from environment values or prompts.
+
+These are the equivalent manual Pi commands:
 
 ```bash
 sudo apt update
@@ -58,15 +86,15 @@ aero-pi-ogn-setup
 aero-pi-ogn-uninstall
 ```
 
-There is also a thin convenience script for source checkouts:
+The installer script can also be run from a source checkout:
 
 ```bash
-bash scripts/install.sh
+sh scripts/install.sh
 ```
 
-The script creates `~/aero-pi-ogn-receiver-venv`, installs the package into that
-venv, and prints the explicit `sudo` setup/config commands. It does not replace
-the privileged setup step.
+When run from a checkout it still installs the published GitHub package by
+default. Set `AERO_PI_OGN_PIP_SPEC=.` if you intentionally want to install the
+local checkout instead.
 
 ## OS Package Changes
 
