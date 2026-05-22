@@ -41,6 +41,46 @@ class AircraftTests(unittest.TestCase):
 
         self.assertEqual(track.identifier, "F-CABC")
 
+    def test_parse_ogn_receiver_short_summary_and_detail_pairs(self):
+        tracks = aircraft.parse_aircraft_lines(
+            [
+                "FLRDD8DED [   38/  131sec] 1:2:DD8DED F*  <30.1m/s> < 7.9dB>, "
+                "<0.8bit/packet>, < -1.99(0.15)kHz> -10.2dB@10km(118) "
+                "DD8DED/05/7.4.3",
+                "120926: [ +48.92981,  -0.12933]deg   619m  -1.4m/s  "
+                "25.1m/s 251.5deg -10.0deg/s __2 04x06m O :01f__ -1.79kHz  "
+                "4.2/15.5dB/2  0e     1.4km 079.7deg +17.8deg +  !   *",
+                "FLRDD8F34 [   20/  194sec] 1:2:DD8F34 F*  <20.0m/s> < 5.3dB>, "
+                "<2.4bit/packet>, < +2.58(0.07)kHz> -11.2dB@10km(35)",
+                "120850: [ +48.94136,  -0.13945]deg   840m  -0.6m/s  "
+                "26.2m/s 349.5deg  +6.7deg/s __2 03x05m O :00f__ +2.60kHz  "
+                "3.0/12.5dB/2  2e     1.7km 023.0deg +22.1deg +  !   *",
+            ]
+        )
+
+        self.assertEqual(len(tracks), 2)
+        self.assertEqual(tracks[0].identifier, "FLRDD8DED")
+        self.assertEqual(tracks[0].age, "131s")
+        self.assertEqual(tracks[0].latitude, "+48.92981")
+        self.assertEqual(tracks[0].longitude, "-0.12933")
+        self.assertEqual(tracks[0].altitude_m, "619")
+        self.assertEqual(tracks[0].speed_kt, "49")
+        self.assertEqual(tracks[0].heading_deg, "251.5")
+        self.assertEqual(tracks[0].quality, "4.2/15.5dB/2 -1.79kHz")
+        self.assertEqual(tracks[1].identifier, "FLRDD8F34")
+        self.assertEqual(tracks[1].speed_kt, "51")
+        self.assertEqual(tracks[1].quality, "3.0/12.5dB/2 +2.60kHz")
+
+    def test_parse_ogn_receiver_summary_line_keeps_fallback_quality(self):
+        track = aircraft.parse_aircraft_line(
+            "FLRDD8DED [   38/  131sec] 1:2:DD8DED F*  <30.1m/s> < 7.9dB>, "
+            "<0.8bit/packet>, < -1.99(0.15)kHz> -10.2dB@10km(118)"
+        )
+
+        self.assertEqual(track.identifier, "FLRDD8DED")
+        self.assertEqual(track.age, "131s")
+        self.assertEqual(track.quality, "7.9dB -1.99kHz")
+
     def test_fetch_aircraft_text(self):
         class Response:
             def __enter__(self):

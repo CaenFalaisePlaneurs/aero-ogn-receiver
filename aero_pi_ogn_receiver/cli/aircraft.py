@@ -39,7 +39,25 @@ APRS_POS_RE = re.compile(
 )
 DB_NAME_RE = re.compile(r'Name="(?P<name>[^"]+)"')
 SIGNAL_RE = re.compile(r"(?P<signal_db>[+-]?\d+(?:\.\d+)?)dB")
-FREQ_RE = re.compile(r"(?P<freq_offset_khz>[+-]?\d+(?:\.\d+)?)kHz")
+FREQ_RE = re.compile(r"(?P<freq_offset_khz>[+-]?\d+(?:\.\d+)?)(?:\([^)]+\))?kHz")
+OGN_SUMMARY_RE = re.compile(
+    r"^(?P<identifier>[A-Za-z0-9?_-]+)\s+"
+    r"\[\s*(?P<count>\d+)\s*/\s*(?P<age>\d+)sec\]\s+"
+    r"(?P<address>[0-9A-Fa-f]+:[0-9A-Fa-f]+:[0-9A-Fa-f]{6})\b"
+)
+OGN_SUMMARY_SIGNAL_RE = re.compile(r"<\s*(?P<signal_db>[+-]?\d+(?:\.\d+)?)dB>")
+OGN_DETAIL_RE = re.compile(
+    r"^(?P<time>\d{6}):\s+"
+    r"\[\s*(?P<latitude>[+-]?\d+(?:\.\d+)?),\s*"
+    r"(?P<longitude>[+-]?\d+(?:\.\d+)?)\]deg\s+"
+    r"(?P<altitude_m>-?\d+)m\s+"
+    r"(?P<vertical_speed_ms>[+-]?\d+(?:\.\d+)?)m/s\s+"
+    r"(?P<speed_ms>[+-]?\d+(?:\.\d+)?)m/s\s+"
+    r"(?P<heading_deg>[+-]?\d+(?:\.\d+)?)deg"
+)
+OGN_DETAIL_SIGNAL_RE = re.compile(
+    r"(?P<signal_db>[+-]?\d+(?:\.\d+)?/[+-]?\d+(?:\.\d+)?dB/\d+)"
+)
 
 
 @dataclass(frozen=True)
@@ -106,7 +124,7 @@ def print_aircraft(url: str, *, timeout: float, raw: bool) -> int:
             print(line)
         return 0
 
-    tracks = [parse_aircraft_line(line) for line in lines]
+    tracks = parse_aircraft_lines(lines)
     print_aircraft_table(tracks)
     return 0
 
@@ -127,7 +145,47 @@ def cleaned_lines(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if line.strip()]
 
 
+def parse_aircraft_lines(lines: list[str]) -> list[AircraftTrack]:
+    tracks: list[AircraftTrack] = []
+    pending_summary: AircraftTrack | None = None
+
+    for line in lines:
+        summary_track = parse_ogn_summary_line(line)
+        if summary_track:
+            if pending_summary:
+                tracks.append(pending_summary)
+            pending_summary = summary_track
+            continue
+
+        detail_track = parse_ogn_detail_line(line)
+        if detail_track:
+            if pending_summary:
+                tracks.append(_merge_tracks(pending_summary, detail_track))
+                pending_summary = None
+            else:
+                tracks.append(detail_track)
+            continue
+
+        if pending_summary:
+            tracks.append(pending_summary)
+            pending_summary = None
+        tracks.append(parse_aircraft_line(line))
+
+    if pending_summary:
+        tracks.append(pending_summary)
+
+    return tracks
+
+
 def parse_aircraft_line(line: str) -> AircraftTrack:
+    ogn_summary = parse_ogn_summary_line(line)
+    if ogn_summary:
+        return ogn_summary
+
+    ogn_detail = parse_ogn_detail_line(line)
+    if ogn_detail:
+        return ogn_detail
+
     local_match = LOCAL_TRACK_RE.search(line)
     if local_match:
         groups = local_match.groupdict()
@@ -171,6 +229,70 @@ def parse_aircraft_line(line: str) -> AircraftTrack:
     return AircraftTrack(identifier="?", raw=line)
 
 
+def parse_ogn_summary_line(line: str) -> AircraftTrack | None:
+    summary_match = OGN_SUMMARY_RE.search(line)
+    if not summary_match:
+        return None
+
+    groups = summary_match.groupdict()
+    quality_parts: list[str] = []
+    signal_match = OGN_SUMMARY_SIGNAL_RE.search(line)
+    if signal_match:
+        quality_parts.append(f"{signal_match.group('signal_db')}dB")
+    freq_match = FREQ_RE.search(line)
+    if freq_match:
+        quality_parts.append(f"{freq_match.group('freq_offset_khz')}kHz")
+
+    return AircraftTrack(
+        identifier=groups["identifier"],
+        age=f"{groups['age']}s",
+        quality=" ".join(quality_parts),
+        raw=line,
+    )
+
+
+def parse_ogn_detail_line(line: str) -> AircraftTrack | None:
+    detail_match = OGN_DETAIL_RE.search(line)
+    if not detail_match:
+        return None
+
+    groups = detail_match.groupdict()
+    quality_parts: list[str] = []
+    signal_match = OGN_DETAIL_SIGNAL_RE.search(line)
+    if signal_match:
+        quality_parts.append(signal_match.group("signal_db"))
+    freq_match = FREQ_RE.search(line)
+    if freq_match:
+        quality_parts.append(f"{freq_match.group('freq_offset_khz')}kHz")
+
+    return AircraftTrack(
+        identifier="?",
+        latitude=groups["latitude"],
+        longitude=groups["longitude"],
+        altitude_m=groups["altitude_m"],
+        speed_kt=_mps_to_kt(groups["speed_ms"]),
+        heading_deg=_clean_decimal(groups["heading_deg"]),
+        quality=" ".join(quality_parts),
+        raw=line,
+    )
+
+
+def _merge_tracks(summary: AircraftTrack, detail: AircraftTrack) -> AircraftTrack:
+    quality = detail.quality or summary.quality
+    raw = "\n".join(part for part in (summary.raw, detail.raw) if part)
+    return AircraftTrack(
+        identifier=summary.identifier,
+        latitude=detail.latitude or summary.latitude,
+        longitude=detail.longitude or summary.longitude,
+        altitude_m=detail.altitude_m or summary.altitude_m,
+        speed_kt=detail.speed_kt or summary.speed_kt,
+        heading_deg=detail.heading_deg or summary.heading_deg,
+        quality=quality,
+        age=summary.age or detail.age,
+        raw=raw,
+    )
+
+
 def print_aircraft_table(tracks: list[AircraftTrack]) -> None:
     rows = [
         [
@@ -204,6 +326,16 @@ def _aprs_coordinate(degrees: str, minutes: str, hemisphere: str) -> float:
     if hemisphere in {"S", "W"}:
         return -value
     return value
+
+
+def _mps_to_kt(speed_ms: str) -> str:
+    return str(round(float(speed_ms) * 1.9438444924406))
+
+
+def _clean_decimal(value: str) -> str:
+    if "." not in value:
+        return value
+    return value.rstrip("0").rstrip(".")
 
 
 def _aprs_quality_parts(line: str) -> list[str]:
